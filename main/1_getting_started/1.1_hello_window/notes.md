@@ -1,6 +1,6 @@
 # Hello Window
 
-We uses GLFW to create the window and uses OpenGL version 3.3. To load the the OpenGL functions, we use [glad](https://github.com/Dav1dde/glad).
+We use [GLFW](https://github.com/glfw/glfw) to create the window and uses OpenGL version 3.3. To load the the OpenGL functions, we use [glad](https://github.com/Dav1dde/glad).
 
 ## Preparation
 
@@ -57,7 +57,7 @@ glViewport(<location_x>, <location_y>, <window_width>, <window_height>);
 // example.: glViewport(0, 0, 800, 600);
 ```
 
-Behind the scenes, OpenGL uses the data specified via `glViewport` to transform the 2D coordinates it processed to coordinates on your screen. For example, a processed point of location `(-0.5, 0.5)` would be mapped to `(200, 450)` in screen coordinates of resolution `800x600`.
+Behind the scenes, OpenGL uses the data specified via `glViewport` to transform the 2D coordinates it processed to coordinates on your screen. For example, a processed point of location `(-0.5, 0.5)` would be mapped to `(200, 450)` in screen coordinates for window of size `(800, 600)`.
 
 Note that processed coordinates in OpenGL are between `-1 and 1`, so we effectively map from the range `[-1, 1]` to `[0, 800]` and `[0, 600]`.
 
@@ -100,7 +100,7 @@ glfwTerminate();
 
 ## Input
 
-GLFW gives several method of managing input: [GLFW input guide](https://www.glfw.org/docs/3.3/input_guide.html). But, for continuous input of key events, we can query it directly using `glfwGetKey` function.
+GLFW gives several method of managing input: [GLFW input guide](https://www.glfw.org/docs/3.3/input_guide.html). But, for continuous input of keyboard key press events, we can query it directly using `glfwGetKey` function.
 
 For example, this is a function that process input every frame.
 
