@@ -57,20 +57,9 @@ glViewport(<location_x>, <location_y>, <window_width>, <window_height>);
 // example.: glViewport(0, 0, 800, 600);
 ```
 
-Behind the scenes, OpenGL uses the data specified via `glViewport` to transform the 2D coordinates it processed to coordinates on your screen. For example, a processed point of location `(-0.5, 0.5)` would be mapped to `(200, 450)` in screen coordinates for window of size `(800, 600)`.
+Behind the scenes, OpenGL uses the data specified via `glViewport` to transform the 2D coordinates it processed to coordinates on your screen. For example, a processed point of location `(-0.5, 0.5)` would be mapped to ~~`(200, 450)`~~ _(should be `(200, 150)` no?)_ in screen coordinates for window of size `(800, 600)`.
 
 Note that processed coordinates in OpenGL are between `-1 and 1`, so we effectively map from the range `[-1, 1]` to `[0, 800]` and `[0, 600]`.
-
-```text
-          OpenGL                              Screen coordinate
-  1 ▲ ┌───────────┐                       600 ▲ ┌───────────┐
-    │ │  p        │  p = (-0.5, 0.5)          │ │  p        │  p = (200, 450)
-    │ │           │                           │ │           │
-    │ │           │                           │ │           │
- -1 ▼ └───────────┘                         0 ▼ └───────────┘
-      ◀──────────▶                              ◀──────────▶
-      -1         1                              0         800
-```
 
 The moment, a user resizes the window, the viewport should be adjusted as well. We can register to the resize event using callback:
 
