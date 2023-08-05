@@ -1,0 +1,3 @@
+[submodule "resources/lib/glbinding"]
+	path = resources/lib/glbinding
+	url = git@github.com:cginternals/glbinding.git
