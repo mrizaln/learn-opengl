@@ -8,8 +8,8 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 
 ## Dependencies
 
-- GLFW
-- glad
+- [GLFW](https://github.com/glfw/glfw)
+- [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
 
 ### Linux
 

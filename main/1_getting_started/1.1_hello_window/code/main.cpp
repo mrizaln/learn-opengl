@@ -5,8 +5,12 @@
 #include <memory>
 #include <optional>
 
-#include <glad/glad.h>    // make sure to
+#include <glbinding/gl/gl.h>
+#include <glbinding/glbinding.h>
+#define GLFW_INCLUDE_NONE    // to prevent glfw from including GL/gl.h (which conflicts with glbinding/gl/gl.h)
 #include <GLFW/glfw3.h>
+
+using namespace gl;
 
 constexpr int         g_window_width  = 800;
 constexpr int         g_window_height = 600;
@@ -57,11 +61,8 @@ std::optional<unique_GLFWwindow> init()
         glfwMakeContextCurrent(window.get());
     }
 
-    // initialize glad
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize glad";
-        return {};
-    }
+    // initialize glbinding
+    glbinding::initialize(glfwGetProcAddress);
 
     // set the size of rendering window
     glViewport(0, 0, g_window_width, g_window_height);

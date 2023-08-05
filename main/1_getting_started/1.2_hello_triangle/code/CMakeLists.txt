@@ -8,14 +8,13 @@ project(ProjectName)
 
 find_package(glfw3 REQUIRED)
 
-add_subdirectory(./lib/glad)
-include_directories(./lib/glad/include)
+add_subdirectory(./lib/glbinding)
 
 # integrity test
 set(MAIN_EXE main)
 add_executable(${MAIN_EXE} main.cpp)
 
-target_link_libraries(${MAIN_EXE}
-    PUBLIC glad
-    PUBLIC glfw
+target_link_libraries(${MAIN_EXE} PUBLIC
+    glfw
+    glbinding::glbinding
 )

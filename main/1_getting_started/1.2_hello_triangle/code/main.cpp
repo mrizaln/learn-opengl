@@ -7,10 +7,14 @@
 #include <optional>
 #include <string_view>
 #include <utility>
-
-#include <glad/glad.h>    // make sure to
-#include <GLFW/glfw3.h>
 #include <type_traits>
+
+#include <glbinding/gl/gl.h>
+#include <glbinding/glbinding.h>
+#define GLFW_INCLUDE_NONE    // to make sure glfw doesn't include OpenGL headers (avoiding glbinding/gl/gl.h and GL/gl.h conflict)
+#include <GLFW/glfw3.h>
+
+using namespace gl;
 
 constexpr int              g_widowWidth   = 800;
 constexpr int              g_windowHeight = 600;
@@ -123,10 +127,7 @@ std::optional<unique_GLFWwindow> init()
         glfwMakeContextCurrent(window.get());
     }
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize glad";
-        return {};
-    }
+    glbinding::initialize(glfwGetProcAddress);
 
     glViewport(0, 0, g_widowWidth, g_windowHeight);
 
