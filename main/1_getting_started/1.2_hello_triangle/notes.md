@@ -309,3 +309,38 @@ glUseProgram(app::shaderProgram);
 glBindVertexArray(app::triangleVao);
 glDrawArrays(GL_TRIANGLES, 0, g_vertices.size());
 ```
+
+## Element buffer object
+
+An element buffer object (EBO) is a buffer, just like a VBO, that stores indices that OpenGL uses to decide what vertices to draw. This is also so called **indexed drawing** (useful when we want to draw vertices without duplicating the data).
+
+For example, we want to draw a rectangle. To create one, we need two triangles, thus 6 vertices. Using EBO, our data then can be divided into vertices and indices:
+
+```cpp
+float vertices[] = {
+     0.5f,  0.5f, 0.0f,  // top right
+     0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left
+};
+unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+};
+```
+
+The construction of the EBO is similar to VBO.
+
+```cpp
+GLuint ebo;
+glGenBuffers(1, &ebo);
+glBindBuffer(GL_ARRAY_BUFFER, ebo);
+glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), (void*)&vertices.front().front(), GL_STATIC_DRAW);
+```
+
+The draw call using EBO is different
+
+```cpp
+glBindVertexArray(vao);
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+```
