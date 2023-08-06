@@ -3,6 +3,7 @@
 
 #include <array>
 #include <atomic>
+#include <cmath>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -46,12 +47,9 @@ public:
         #version 330 core
         layout (location = 0) in vec3 a_Pos;
 
-        out vec4 io_vertexColor;        // sender
-
         void main()
         {
             gl_Position = vec4(a_Pos, 1.0);
-            io_vertexColor = vec4(0.5, 0.0, 0.0, 1.0);
         }
     )glsl";
 
@@ -59,11 +57,11 @@ public:
         #version 330 core
         out vec4 o_fragColor;
 
-        in vec4 io_vertexColor;         // receiver
+        uniform vec4 u_color;
 
         void main()
         {
-            o_fragColor = io_vertexColor;
+            o_fragColor = u_color;
         }
     )glsl";
 
@@ -225,7 +223,7 @@ private:
             glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
             auto log{ new GLchar[(std::size_t)maxLength] };
             glGetShaderInfoLog(shader, maxLength, &logLength, log);
-            std::cout << "Shader compilation failed: \n"
+            std::cerr << "Shader compilation failed: \n"
                       << log << '\n';
             delete[] log;
         }
@@ -242,7 +240,7 @@ private:
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
             auto log{ new GLchar[(std::size_t)maxLength] };
             glGetProgramInfoLog(program, maxLength, &logLength, log);
-            std::cout << "Program linking failed: \n"
+            std::cerr << "Program linking failed: \n"
                       << log << '\n';
             delete[] log;
         }
@@ -339,6 +337,14 @@ private:
     {
         auto window{ m_window.get() };
 
+        GLint vertexColorLocation{ glGetUniformLocation(m_shaderProgram, "u_color") };
+        if (vertexColorLocation == -1) {
+            std::cerr << "Unable to find the location of 'u_color' uniform!\n";
+        }
+
+        // we only use a single shader program set it once is okay I guess
+        glUseProgram(m_shaderProgram);
+
         while (!glfwWindowShouldClose(window)) {
             processInput(window);
 
@@ -346,8 +352,12 @@ private:
             glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            // messing with uniform
+            float timeValue{ static_cast<float>(m_lastTime) };
+            float greenValue{ std::sin(timeValue) / 2.0f + 0.5f };
+            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
             // draw triangle
-            glUseProgram(m_shaderProgram);
             glBindVertexArray(m_triangleVao);
             glDrawArrays(GL_TRIANGLES, 0, s_triangleVertices.size());
 

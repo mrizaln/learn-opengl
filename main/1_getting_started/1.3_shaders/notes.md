@@ -111,3 +111,59 @@ void main()
     FragColor = vertexColor;
 }
 ```
+
+### Uniforms
+
+**`Uniforms`** are another way to pass data from out application on the CPU to the shaders on the GPU. Uniforms are **global**, meaning that uniform variable is unique per shader program object, and can be accessed from any shader at any stage in the shader program. Whatever you set the uniform value to, uniforms will keep their values until they're either reset or updated.
+
+To declare a uniform in GLSL, we simply add the `uniform` keyword to a shader with a type and a name.
+
+```glsl
+#version 330 core
+out vec4 FragColor;
+
+uniform vec4 uColor; // we set this variable in the OpenGL code.
+
+void main()
+{
+    FragColor = uColor;
+}
+```
+
+---
+
+**Warning**: If you declare a uniform that isn't used anywhere in your GLSL code, the compiler will silently remove the variable from the compiled version which is the cause for several frustating errors.
+
+---
+
+To set the value of a uniform, we first need to find the index/location of the uniform attribute in our shader. Once we have the index/location of the uniform, we can update its values.
+
+```cpp
+// just messing with color throughout time
+float timeValue{ static_cast<float>(glfwGetTime()) };
+float greenValue{ std::sin(timeValue) / 2.0f + 0.5f };
+
+// set the uniform value
+GLint vertexColorLocation{ glGetUniformLocation(m_shaderProgram, "uColor") }; // this name must match the uniform name
+glUseProgram(shaderProgram);
+glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+```
+
+We query for the location of the `uColor` uniform using `glGetUniformLocation`. We suppy the shader program and the name of the uniform to the function. If `glGetUniformLocation` returns -1, it could not find the location. **Note that finding the uniform location does not require you to use the shader program first but updating a uniform does require you to first use the program**.
+
+We set the uniform value using the `glUniform4f` function. It is one of many functions that can be used to set the value of a uniform (GLSL does not support overloading).
+
+> `glUniform` variations: `glUniform<N><T>[v]`
+>
+> Where:
+>
+> - <> = always exist
+> - [] = optionally exist
+> - \<N> = number of values: 1, 2, 3, 4.
+> - \<T> = type: `f`, `i`, `ui`, `d`.
+> - \[v] = the function receives an array instead of single value for each argument
+>
+> Example:
+>
+> - `glUniform4f`: expects 4 float values to be passed to the function.
+> - `glUniform3iv`: expects 3 integer values to be passed as an array to the function
