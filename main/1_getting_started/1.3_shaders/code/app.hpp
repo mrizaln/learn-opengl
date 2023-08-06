@@ -40,9 +40,7 @@ public:
         Triple<float> color;
     };
 
-    using TriangleVert  = Triple<PosAndColor>;
-    using RectangleVert = std::array<Point<>, 4>;
-    using RectangleInd  = std::array<Point<unsigned int>, 2>;
+    using TriangleVert = Triple<PosAndColor>;
 
     static constexpr TriangleVert s_triangleVertices{ {
         { .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } },
