@@ -167,3 +167,83 @@ We set the uniform value using the `glUniform4f` function. It is one of many fun
 >
 > - `glUniform4f`: expects 4 float values to be passed to the function.
 > - `glUniform3iv`: expects 3 integer values to be passed as an array to the function
+
+### More attributes
+
+We saw in the previous chapter how we can fill a VBO, configure vertex attribute pointers and store it all in a VAO. This time, we also want to add color data to the vertex data. We're going to add color data as 3 `floats` to the `vertices` array. We assign a red, green, and blue color to each of the corners of our triangle.
+
+```cpp
+float vertices[] = {
+    // positions         // colors
+     0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
+};
+```
+
+We need to adjust the vertex shader to also receive our color value as a vertex attribute input.
+
+**Vertex shader**:
+
+```glsl
+#version 330 core
+layout (location = 0) in vec3 aPos;   // position attribute at position 0
+layout (location = 1) in vec3 aColor; // color attribute at position 1
+
+out vec3 ourColor; // output a color to the fragment shader
+
+void main()
+{
+    gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor; // set ourColor to input color
+}
+```
+
+**Fragment shader**:
+
+```glsl
+#version 330 core
+out vec4 FragColor;
+in vec3 ourColor;
+
+void main()
+{
+    FragColor = vec4(ourColor, 1.0);
+}
+```
+
+Because we added new attribute, we need to update the vertex attribute pointers as well.
+
+```text
+          ┌───────────────────────────────────┬───────────────────────────────────┬───────────────────────────────────┐
+          │ VERTEX 1                          │ VERTEX 2                          │ VERTEX 3                          │
+          ├─────┬─────┬─────┲━━━━━┳━━━━━┳━━━━━╅─────┬─────┬─────┲━━━━━┳━━━━━┳━━━━━╅─────┬─────┬─────┲━━━━━┳━━━━━┳━━━━━┪
+          │  X  │  Y  │  Z  ┃  R  ┃  G  ┃  B  ┃  X  │  Y  │  Z  ┃  R  ┃  G  ┃  B  ┃  X  │  Y  │  Z  ┃  R  ┃  G  ┃  B  ┃
+          └─────┴─────┴─────┺━━━━━┻━━━━━┻━━━━━┹─────┴─────┴─────┺━━━━━┻━━━━━┻━━━━━┹─────┴─────┴─────┺━━━━━┻━━━━━┻━━━━━┛
+    byte: 0     4     8     12    16    20    24    28    32    36    40    44    48    52    56    60    64    68    72
+          ╵                 ╵                 ╵                 ╵
+POSITION: ├──────────╴stride: 24╶────────────▶╵                 ╵
+          │                 ╷                                   ╵
+          ▼                 ╷                                   ╵
+      offset: 0             ╷                                   ╵
+                            ╷                                   ╵
+                     COLOR: ┌──────────╴stride: 24╶────────────▶╵
+                            │
+                            ▼
+                        offset: 12
+```
+
+Knowing the memory layout, we can update the vertex format accordingly.
+
+```cpp
+// position attrib
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+
+// color attrib
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+glEnableVertexAttribArray(1);
+```
+
+> The image may not be exactly what you would expect, since we only supplied 3 colros, not the huge color palette.
+> This is all the result of something called **fragment interpolation** in the fragment shader.

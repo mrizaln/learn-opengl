@@ -4,6 +4,7 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstddef>
 #include <format>
 #include <functional>
 #include <iostream>
@@ -33,35 +34,50 @@ public:
     template <typename T = float>
     using Point = Triple<T>;
 
-    using TriangleVert  = Triple<Point<>>;
+    using PosAndColor = struct
+    {
+        Point<float>  pos;
+        Triple<float> color;
+    };
+
+    using TriangleVert  = Triple<PosAndColor>;
     using RectangleVert = std::array<Point<>, 4>;
     using RectangleInd  = std::array<Point<unsigned int>, 2>;
 
-    static constexpr TriangleVert s_triangleVertices{
-        { { -0.5f, -0.5f, 0.0f },
-          { 0.5f, -0.5f, 0.0f },
-          { 0.0f, 0.5f, 0.0f } }
-    };
+    static constexpr TriangleVert s_triangleVertices{ {
+        { .pos = { 0.5f, -0.5f, 0.0f }, .color = { 1.0f, 0.0f, 0.0f } },
+        { .pos = { -0.5f, -0.5f, 0.0f }, .color = { 0.0f, 1.0f, 0.0f } },
+        { .pos = { 0.0f, 0.5f, 0.0f }, .color = { 0.0f, 0.0f, 1.0f } },
+    } };
 
     static constexpr std::string_view s_vertexShaderSource = R"glsl(
         #version 330 core
-        layout (location = 0) in vec3 a_Pos;
+
+        layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec3 aColor;
+        out vec3 ourColor;
 
         void main()
         {
-            gl_Position = vec4(a_Pos, 1.0);
+            gl_Position = vec4(aPos, 1.0);
+            ourColor = aColor;
         }
     )glsl";
 
     static constexpr std::string_view s_fragmentShaderSource = R"glsl(
         #version 330 core
-        out vec4 o_fragColor;
 
-        uniform vec4 u_color;
+        out vec4 FragColor;
+        in vec3 ourColor;
+        uniform int u_invertColor;      // boolean
 
         void main()
         {
-            o_fragColor = u_color;
+            if (u_invertColor == 1) {
+                FragColor = vec4(1.0 - ourColor, 1.0);
+            } else {
+                FragColor = vec4(ourColor, 1.0);
+            }
         }
     )glsl";
 
@@ -90,6 +106,7 @@ private:
     double            m_deltaTime{};
     bool              m_vsync{ true };
     bool              m_drawWireFrame{ false };
+    bool              m_invertColor{ false };
 
 public:
     static std::optional<std::reference_wrapper<App>> getInstance()
@@ -189,6 +206,17 @@ private:
                 }
             }
 
+            if (key == GLFW_KEY_I && action == GLFW_PRESS) {
+                GLint vertexColorLocation{ glGetUniformLocation(app.m_shaderProgram, "u_invertColor") };
+                if ((app.m_invertColor = !app.m_invertColor)) {
+                    glUseProgram(app.m_shaderProgram);
+                    glUniform1i(vertexColorLocation, 1);
+                } else {
+                    glUseProgram(app.m_shaderProgram);
+                    glUniform1i(vertexColorLocation, 0);
+                }
+            }
+
             if (key == GLFW_KEY_V && action == GLFW_PRESS) {
                 if ((app.m_vsync = !app.m_vsync)) {
                     glfwSwapInterval(1);
@@ -259,20 +287,17 @@ private:
         glBufferData(
             GL_ARRAY_BUFFER,
             sizeof(TriangleVert),
-            (void*)&s_triangleVertices.front().front(),
+            (void*)&s_triangleVertices.front().pos.front(),
             GL_STATIC_DRAW
         );
 
-        // configure vertex attributes
-        glVertexAttribPointer(
-            0,
-            s_triangleVertices.size(),
-            GL_FLOAT,
-            GL_FALSE,
-            sizeof(decltype(s_triangleVertices)::value_type),
-            (void*)0
-        );
+        // positiion attrib
+        glVertexAttribPointer(0, s_triangleVertices.size(), GL_FLOAT, GL_FALSE, sizeof(PosAndColor), (void*)offsetof(PosAndColor, pos));
         glEnableVertexAttribArray(0);
+
+        // color attrib
+        glVertexAttribPointer(1, s_triangleVertices.size(), GL_FLOAT, GL_FALSE, sizeof(PosAndColor), (void*)offsetof(PosAndColor, color));
+        glEnableVertexAttribArray(1);
 
         // unbind
         glBindVertexArray(0);
@@ -329,20 +354,25 @@ private:
 
     void updateTitle()
     {
-        auto newTitle{ std::format("{} [{}FPS | {:.2f}ms]", s_windowName, static_cast<int>(1 / m_deltaTime), m_deltaTime * 1000) };
-        glfwSetWindowTitle(m_window.get(), newTitle.c_str());
+        constexpr double timeInterval{ 0.25 };    // in seconds
+        static double    sumTime{ 0.0 };
+        static int       numFrames{ 0 };
+
+        ++numFrames;
+        if ((sumTime += m_deltaTime) >= timeInterval) {
+            auto avgTime{ sumTime / numFrames };
+            auto newTitle{ std::format("{} [{} FPS | {:.2f}ms]", s_windowName, static_cast<int>(1 / avgTime), avgTime * 1000) };
+            glfwSetWindowTitle(m_window.get(), newTitle.c_str());
+            sumTime   = 0;
+            numFrames = 0;
+        }
     }
 
     void renderLoop()
     {
         auto window{ m_window.get() };
 
-        GLint vertexColorLocation{ glGetUniformLocation(m_shaderProgram, "u_color") };
-        if (vertexColorLocation == -1) {
-            std::cerr << "Unable to find the location of 'u_color' uniform!\n";
-        }
-
-        // we only use a single shader program set it once is okay I guess
+        // we only use a single shader program, set it once is okay I guess
         glUseProgram(m_shaderProgram);
 
         while (!glfwWindowShouldClose(window)) {
@@ -351,11 +381,6 @@ private:
             // clear buffer
             glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-
-            // messing with uniform
-            float timeValue{ static_cast<float>(m_lastTime) };
-            float greenValue{ std::sin(timeValue) / 2.0f + 0.5f };
-            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
             // draw triangle
             glBindVertexArray(m_triangleVao);
