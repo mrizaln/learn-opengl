@@ -9,6 +9,7 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 ## Dependencies
 
 - GCC 13 (or other compiler with C++20 support)
+- CMake (3.10+)
 - [GLFW](https://github.com/glfw/glfw)
 - [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
 
