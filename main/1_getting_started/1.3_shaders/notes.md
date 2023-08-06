@@ -247,3 +247,10 @@ glEnableVertexAttribArray(1);
 
 > The image may not be exactly what you would expect, since we only supplied 3 colros, not the huge color palette.
 > This is all the result of something called **fragment interpolation** in the fragment shader.
+
+## Our own shader class
+
+Move the code related to shader management into its own file:
+
+- [shader.hpp](./code/shader.hpp)
+- [app_with_shader_class.hpp](./code/app_with_shader_class.hpp)
