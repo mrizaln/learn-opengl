@@ -6,7 +6,6 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
-#include <glm/detail/qualifier.hpp>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -14,8 +13,6 @@
 
 #include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
-
-#define _shader_hpp_glUniform_(num, type) glUniform##num##type
 
 template <typename GLtype>
 concept UniformValueType = ((std::same_as<GLtype, gl::GLfloat>
