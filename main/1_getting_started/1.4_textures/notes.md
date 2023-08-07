@@ -102,6 +102,7 @@ glGenerateMipmap(GL_TEXTURE_2D);
 ```
 
 The `glTexImage2D` has quite many parameters:
+
 - `1st`: specifies texture target
 - `2nd`: specifies mipmap level for which we want to create a texture for if you want to set each mipmap level manually (0 is the base level)
 - `3rd`: tells OpenGL in what kind of format we want to store the texture
@@ -111,6 +112,7 @@ The `glTexImage2D` has quite many parameters:
 - `9th`: the actual data
 
 After we're done generating the texture, we can free the image data.
+
 ```cpp
 stbi_image_free(data);
 ```
@@ -127,7 +129,7 @@ float vertices[] = {
      0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,     // top right
      0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,     // bottom right
     -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,     // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f      // top left 
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f      // top left
 };
 ```
 
@@ -135,7 +137,7 @@ The attribute pointer then needs to be updated accordingly.
 
 ```cpp
 glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-glEnableVertexAttribArray(2);  
+glEnableVertexAttribArray(2);
 ```
 
 Next, we need to modify our vertex shader to accept the texture coordinates as a vertex attribute and then forward it to the fragment shader.
@@ -162,7 +164,7 @@ The fragment shader should then accept the TexCoord output variable as input var
 ```glsl
 #version 330 core
 out vec4 FragColor;
-  
+
 in vec3 ourColor;
 in vec2 TexCoord;
 
@@ -181,4 +183,38 @@ When we want to draw, we first need not to forget to bind the texture.
 glBindTexture(GL_TEXTURE_2D, texture);
 glBindVertexArray(VAO);
 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+```
+
+## Texture units
+
+You probably noticed that the `sampler2D` variable is a uniform. Why is that? Well actually using `glUniform1i` we can assign a _location_ value to the texture sampler so we can set multiple textures at once in a fragment shader. This location of a texture is more commonly known as a **texture unit**. The default texture unit for a texture is `0` which is the default active texture unit so we didn't need to assign a location in the previous section.
+
+The main purpose of texture units is to allow us to use more than 1 texture in our shaders. Just like `glBindTexture` we can activate texture units using `glActiveTexture` passing in the texture unit we'd like to use.
+
+```cpp
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, texture);
+```
+
+After activating a texture unit, a subsequent `glBindTexture` call will bind that texture to the currently active texture unit.
+
+---
+
+**Note**: OpenGL should have at least a minimum of `16` texture units for you to use which you can activate using `GL_TEXTURE0` to `GL_TEXTURE15`. They are defined in order so we could also get `GL_TEXTURE8` via `GL_TEXTURE0 + 8` for example.
+
+---
+
+The fragment shader then would be like this
+
+```cpp
+#version 330 core
+...
+
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+
+void main()
+{
+    FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+}
 ```
