@@ -9,16 +9,17 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 ## Dependencies
 
 - GCC 13 (or other compiler with C++20 support)
-- [stb](https://github.com/nothings/stb) (stb_image specifically)
 - CMake (3.10+)
 - [GLFW](https://github.com/glfw/glfw)
 - [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
+- [stb](https://github.com/nothings/stb) (stb_image specifically)
+- [GLM](https://github.com/g-truc/glm)
 
 ### Linux
 
 - Fedora
 
-  `$ sudo dnf install glfw glfw-devel stb-devel`
+  `$ sudo dnf install glfw glfw-devel stb-devel glm-devel`
 
 - Others
 
