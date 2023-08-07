@@ -242,28 +242,30 @@ private:
         if (loc == -1) {
             std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
         }
+
+        // another C limitation, the const does not matter
         auto val{ const_cast<Type*>(value) };
 
         // clang-format off
-        if      constexpr (std::same_as<Type, gl::GLfloat>  && N == 2) gl::glUniform2fv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 3) gl::glUniform3fv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 4) gl::glUniform4fv(loc, 1, &val[0]);
+        if      constexpr (std::same_as<Type, gl::GLfloat>  && N == 2) gl::glUniform2fv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 3) gl::glUniform3fv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 4) gl::glUniform4fv(loc, 1, val);
 
-        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 2) gl::glUniform2dv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 3) gl::glUniform3dv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 4) gl::glUniform4dv(loc, 1, &val[0]);
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 2) gl::glUniform2dv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 3) gl::glUniform3dv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 4) gl::glUniform4dv(loc, 1, val);
 
-        else if constexpr (std::same_as<Type, gl::GLint>    && N == 2) gl::glUniform2iv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLint>    && N == 3) gl::glUniform3iv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLint>    && N == 4) gl::glUniform4iv(loc, 1, &val[0]);
+        else if constexpr (std::same_as<Type, gl::GLint>    && N == 2) gl::glUniform2iv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLint>    && N == 3) gl::glUniform3iv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLint>    && N == 4) gl::glUniform4iv(loc, 1, val);
 
-        else if constexpr (std::same_as<Type, bool>         && N == 2) gl::glUniform2iv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, bool>         && N == 3) gl::glUniform3iv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, bool>         && N == 4) gl::glUniform4iv(loc, 1, &val[0]);
+        else if constexpr (std::same_as<Type, bool>         && N == 2) gl::glUniform2iv(loc, 1, val);
+        else if constexpr (std::same_as<Type, bool>         && N == 3) gl::glUniform3iv(loc, 1, val);
+        else if constexpr (std::same_as<Type, bool>         && N == 4) gl::glUniform4iv(loc, 1, val);
 
-        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 2) gl::glUniform2uiv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 3) gl::glUniform3uiv(loc, 1, &val[0]);
-        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 4) gl::glUniform4uiv(loc, 1, &val[0]);
+        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 2) gl::glUniform2uiv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 3) gl::glUniform3uiv(loc, 1, val);
+        else if constexpr (std::same_as<Type, gl::GLuint>   && N == 4) gl::glUniform4uiv(loc, 1, val);
         // clang-format on
     }
 
