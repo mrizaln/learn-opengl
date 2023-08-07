@@ -218,3 +218,28 @@ void main()
     FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
 }
 ```
+
+To use the second texture (and the first texture) we'd have to change the rendering procedure by binding both textures to the corresponding texture unit:
+
+```cpp
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, texture1);
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D, texture2);
+
+glBindVertexArray(VAO);
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+```
+
+We also have to tell OpenGL to which texture unit each shader sampler belongs to by setting each sampler using `glUniform1i`. We only have to set this once, so we can do this before we enter the render loop.
+
+```cpp
+ourShader.use(); // don't forget to activate the shader before setting uniforms!
+glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0); // set it manually
+ourShader.setInt("texture2", 1); // or with shader class
+
+while(...)
+{
+    [...]
+}
+```
