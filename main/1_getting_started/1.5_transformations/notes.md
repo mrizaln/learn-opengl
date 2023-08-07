@@ -6,18 +6,13 @@
 
 The OpenGL itself works with 3D, but we usually work with `4x4` transformations matrices for several reasons and one of them is that most of the vectors are of size `4`.
 
-```math
-\vec{v}
-
-=
-
-\begin{pmatrix}
-x \\
+$$
+\vec{v} = \begin{pmatrix} x \\
 y \\
 z \\
 w \\
 \end{pmatrix}
-```
+$$
 
 ### Homogeneous coordinates
 
@@ -29,41 +24,41 @@ The $w$ component of a vector is also known as a homogeneous coordinate. To get 
 
 The most simple transformation matrix that we can think of is the identity matrix. This matrix is usually used as a starting point for generating other transformation matrices.
 
-```math
+$$
 \begin{pmatrix}
 {\color{red}1} & {\color{red}0} & {\color{red}0} & {\color{red}0} \\
 {\color{green}0} & {\color{green}1} & {\color{green}0} & {\color{green}0} \\
 {\color{blue}0} & {\color{blue}0} & {\color{blue}1} & {\color{blue}0} \\
 {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}1} \\
-\end{pmatrix}
-
-\cdot
-
+\end{pmatrix} \
+\
+\cdot \
+\
 \begin{pmatrix}
 1 \\
 2 \\
 3 \\
 4 \\
-\end{pmatrix}
-
-=
-
+\end{pmatrix} \
+\
+= \
+\
 \begin{pmatrix}
 {\color{red}1} \cdot 1 \\
 {\color{green}1} \cdot 2 \\
 {\color{blue}1} \cdot 3 \\
 {\color{magenta}1} \cdot 4 \\
-\end{pmatrix}
-
-=
-
+\end{pmatrix} \
+\
+= \
+\
 \begin{pmatrix}
 1 \\
 2 \\
 3 \\
 4 \\
 \end{pmatrix}
-```
+$$
 
 > Yes, it does nothing
 
@@ -71,63 +66,63 @@ The most simple transformation matrix that we can think of is the identity matri
 
 Three dimensional scaling using 4D matrix is defined as follows
 
-```math
+$$
 \begin{pmatrix}
 {\color{red}S_x} & {\color{red}0} & {\color{red}0} & {\color{red}0} \\
 {\color{green}0} & {\color{green}S_y} & {\color{green}0} & {\color{green}0} \\
 {\color{blue}0} & {\color{blue}0} & {\color{blue}S_z} & {\color{blue}0} \\
 {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}1} \\
-\end{pmatrix}
-
-\cdot
-
+\end{pmatrix} \
+\
+\cdot \
+\
 \begin{pmatrix}
 x \\
 y \\
 z \\
 1 \\
-\end{pmatrix}
-
-=
-
+\end{pmatrix} \
+\
+= \
+\
 \begin{pmatrix}
 {\color{red}S_x} \cdot x \\
 {\color{green}S_y} \cdot y \\
 {\color{blue}S_z} \cdot z \\
 1 \\
 \end{pmatrix}
-```
+$$
 
 ### Translation
 
 The magic of using 4D matrix to transform a 3D vector is instead of using an addition with other vector to translate a vector, we can just multiply with a 4D matrix with the shape as follows
 
-```math
+$$
 \begin{pmatrix}
 {\color{red}1} & {\color{red}0} & {\color{red}0} & {\color{red}T_x} \\
 {\color{green}0} & {\color{green}1} & {\color{green}0} & {\color{green}T_y} \\
 {\color{blue}0} & {\color{blue}0} & {\color{blue}1} & {\color{blue}T_z} \\
 {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}0} & {\color{magenta}1} \\
-\end{pmatrix}
-
-\cdot
-
+\end{pmatrix} \
+\
+\cdot \
+\
 \begin{pmatrix}
 x \\
 y \\
 z \\
 1 \\
-\end{pmatrix}
-
-=
-
+\end{pmatrix} \
+\
+= \
+\
 \begin{pmatrix}
 x + {\color{red}T_x} \\
 y + {\color{green}T_y} \\
 z + {\color{blue}T_z} \\
 1 \\
 \end{pmatrix}
-```
+$$
 
 This works because all of the translation values are multiplied by the vector's w column and added to the vector's original values.
 
@@ -137,90 +132,90 @@ Rotations in 3D are specified with an angle and a rotation axis. The angle speci
 
 - Rotation around the X-axis:
 
-  ```math
-  \begin{pmatrix}
-  {\color{red}1    } & {\color{red}0           } &  {\color{red}0           } & {\color{red}0  } \\
-  {\color{green}0  } & {\color{green}cos \theta} & -{\color{green}sin \theta} & {\color{green}0} \\
-  {\color{blue}0   } & {\color{blue}sin \theta } &  {\color{blue}cos \theta } & {\color{blue}0} \\
-  {\color{magenta}0} & {\color{magenta}0       } &  {\color{magenta}0       } & {\color{magenta}1} \\
-  \end{pmatrix}
-
-  \cdot
-
-  \begin{pmatrix}
-  x \\
-  y \\
-  z \\
-  1 \\
-  \end{pmatrix}
-
-  =
-
-  \begin{pmatrix}
-  x \\
-  {\color{green}cos \theta} \cdot y - {\color{green}sin \theta} \cdot z \\
-  {\color{blue}sin \theta } \cdot y + {\color{blue}cos \theta } \cdot z \\
-  1 \\
-  \end{pmatrix}
-  ```
+$$
+\begin{pmatrix}
+{\color{red}1    } & {\color{red}0           } &  {\color{red}0           } & {\color{red}0  } \\
+{\color{green}0  } & {\color{green}cos \theta} & -{\color{green}sin \theta} & {\color{green}0} \\
+{\color{blue}0   } & {\color{blue}sin \theta } &  {\color{blue}cos \theta } & {\color{blue}0} \\
+{\color{magenta}0} & {\color{magenta}0       } &  {\color{magenta}0       } & {\color{magenta}1} \\
+\end{pmatrix} \
+\
+\cdot \
+\
+\begin{pmatrix}
+x \\
+y \\
+z \\
+1 \\
+\end{pmatrix} \
+\
+= \
+\
+\begin{pmatrix}
+x \\
+{\color{green}cos \theta} \cdot y - {\color{green}sin \theta} \cdot z \\
+{\color{blue}sin \theta } \cdot y + {\color{blue}cos \theta } \cdot z \\
+1 \\
+\end{pmatrix}
+$$
 
 - Rotation around the Y-axis:
 
-  ```math
-  \begin{pmatrix}
-   {\color{red}cos \theta } & {\color{red}0    } & {\color{red}sin \theta   } & {\color{red}0  } \\
-   {\color{green}0        } & {\color{green}1  } & {\color{green}0          } & {\color{green}0} \\
-  -{\color{blue}sin \theta} & {\color{blue}0   } & {\color{blue}cos \theta  } & {\color{blue}0} \\
-   {\color{magenta}0      } & {\color{magenta}0} & {\color{magenta}0        } & {\color{magenta}1} \\
-  \end{pmatrix}
-
-  \cdot
-
-  \begin{pmatrix}
-  x \\
-  y \\
-  z \\
-  1 \\
-  \end{pmatrix}
-
-  =
-
-  \begin{pmatrix}
-  {\color{red}cos \theta} \cdot x - {\color{red}sin \theta} \cdot z \\
-  y \\
-  -{\color{blue}sin \theta } \cdot x + {\color{blue}cos \theta } \cdot z \\
-  1 \\
-  \end{pmatrix}
-  ```
+$$
+\begin{pmatrix}
+ {\color{red}cos \theta } & {\color{red}0    } & {\color{red}sin \theta   } & {\color{red}0  } \\
+ {\color{green}0        } & {\color{green}1  } & {\color{green}0          } & {\color{green}0} \\
+-{\color{blue}sin \theta} & {\color{blue}0   } & {\color{blue}cos \theta  } & {\color{blue}0} \\
+ {\color{magenta}0      } & {\color{magenta}0} & {\color{magenta}0        } & {\color{magenta}1} \\
+\end{pmatrix} \
+\
+\cdot \
+\
+\begin{pmatrix}
+x \\
+y \\
+z \\
+1 \\
+\end{pmatrix} \
+\
+= \
+\
+\begin{pmatrix}
+{\color{red}cos \theta} \cdot x - {\color{red}sin \theta} \cdot z \\
+y \\
+-{\color{blue}sin \theta } \cdot x + {\color{blue}cos \theta } \cdot z \\
+1 \\
+\end{pmatrix}
+$$
 
 - Rotation around the Z-axis:
 
-  ```math
-  \begin{pmatrix}
-  {\color{red}cos \theta  } & -{\color{red}sin \theta  } & {\color{red}0    } & {\color{red}0  } \\
-  {\color{green}sin \theta} &  {\color{green}cos \theta} & {\color{green}0  } & {\color{green}0} \\
-  {\color{blue}0          } &  {\color{blue}0          } & {\color{blue}1   } & {\color{blue}0} \\
-  {\color{magenta}0       } &  {\color{magenta}0       } & {\color{magenta}0} & {\color{magenta}1} \\
-  \end{pmatrix}
-
-  \cdot
-
-  \begin{pmatrix}
-  x \\
-  y \\
-  z \\
-  1 \\
-  \end{pmatrix}
-
-  =
-
-  \begin{pmatrix}
-  {\color{red}cos \theta} \cdot x - {\color{red}sin \theta} \cdot y \\
-  {\color{green}sin \theta } \cdot x + {\color{green}cos \theta } \cdot y \\
-  z \\
-  1 \\
-  \end{pmatrix}
-  ```
+$$
+\begin{pmatrix}
+{\color{red}cos \theta  } & -{\color{red}sin \theta  } & {\color{red}0    } & {\color{red}0  } \\
+{\color{green}sin \theta} &  {\color{green}cos \theta} & {\color{green}0  } & {\color{green}0} \\
+{\color{blue}0          } &  {\color{blue}0          } & {\color{blue}1   } & {\color{blue}0} \\
+{\color{magenta}0       } &  {\color{magenta}0       } & {\color{magenta}0} & {\color{magenta}1} \\
+\end{pmatrix} \
+\
+\cdot \
+\
+\begin{pmatrix}
+x \\
+y \\
+z \\
+1 \\
+\end{pmatrix} \
+\
+= \
+\
+\begin{pmatrix}
+{\color{red}cos \theta} \cdot x - {\color{red}sin \theta} \cdot y \\
+{\color{green}sin \theta } \cdot x + {\color{green}cos \theta } \cdot y \\
+z \\
+1 \\
+\end{pmatrix}
+$$
 
 Using the rotation matrices we can transform our position vectors around one of the three unit axes. To rate around an arbritrary 3D axis we can combine all 3 of them by first rotating around X-axis, then Y-axis, and then Z-axis. However, this quickly introduces a problem called **Gimbal lock**.
 
@@ -228,9 +223,9 @@ A better solution is to rotate around an arbitrary unit axis right away. The mat
 
 The concise equation is as follows:
 
-```math
+$$
 R = (cos \theta) I + (sin \theta) [\textbf{u}]_\times + (1 - cos \theta)(\textbf{u} \otimes \textbf{u})
-```
+$$
 
 > Yeah, I can't read that either.
 
