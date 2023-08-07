@@ -4,6 +4,7 @@
 #include <array>
 #include <concepts>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -23,13 +24,25 @@ concept UniformValueType = ((std::same_as<GLtype, gl::GLfloat>
 
 class Shader
 {
+private:
+    enum class ShaderStage
+    {
+        VERTEX,
+        FRAGMENT,
+        GEOMETRY,
+    };
+
 public:
     gl::GLuint m_id;
 
 public:
     Shader() = delete;
 
-    Shader(std::filesystem::path vsPath, std::filesystem::path fsPath)
+    Shader(
+        std::filesystem::path                vsPath,
+        std::filesystem::path                fsPath,
+        std::optional<std::filesystem::path> gsPath = {}
+    )
     {
         std::string   vsSource;
         std::ifstream vsFile{ vsPath };
@@ -51,7 +64,39 @@ public:
             fsSource = buffer.str();
         }
 
-        prepareShader(vsSource, fsSource);
+        auto vsId{ prepareShader(vsSource, ShaderStage::VERTEX) };
+        auto fsId{ prepareShader(fsSource, ShaderStage::FRAGMENT) };
+
+        auto gsId = [&]() -> std::optional<gl::GLuint> {
+            if (gsPath) {
+                std::string   gsSource;
+                std::ifstream gsFile{ gsPath.value() };
+                if (!gsFile) {
+                    std::cerr << "Error reading fragment shader file: " << gsPath.value() << '\n';
+                    return {};
+                } else {
+                    std::stringstream buffer;
+                    buffer << gsFile.rdbuf();
+                    gsSource = buffer.str();
+                }
+                return prepareShader(gsSource, ShaderStage::GEOMETRY);
+            } else {
+                return {};
+            }
+        }();
+
+        // create shader program then link shaders to it
+        m_id = gl::glCreateProgram();
+        gl::glAttachShader(m_id, vsId);
+        gl::glAttachShader(m_id, fsId);
+        if (gsId) { gl::glAttachShader(m_id, gsId.value()); }
+        gl::glLinkProgram(m_id);
+        shaderLinkInfo(m_id);
+
+        // delete shader objects
+        gl::glDeleteShader(vsId);
+        gl::glDeleteShader(fsId);
+        if (gsId) { gl::glDeleteShader(gsId.value()); }
     }
 
     ~Shader()
@@ -75,6 +120,9 @@ public:
     void setUniform(const std::string& name, Type value)
     {
         gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
+        if (loc == -1) {
+            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
+        }
 
         // clang-format off
         if      constexpr (std::same_as<Type, gl::GLfloat>)  gl::glUniform1f(loc, value);
@@ -107,8 +155,15 @@ public:
     }
 
 private:
-    void shaderCompileInfo(gl::GLuint shader)
+    void shaderCompileInfo(gl::GLuint shader, ShaderStage stage)
     {
+        std::string_view name;
+        switch (stage) {
+        case ShaderStage::VERTEX: name = "VERTEX"; break;
+        case ShaderStage::FRAGMENT: name = "FRAGMENT"; break;
+        case ShaderStage::GEOMETRY: name = "GEOMETRY"; break;
+        }
+
         gl::GLint status{};
         gl::glGetShaderiv(shader, gl::GL_COMPILE_STATUS, &status);
         if (status != 1) {
@@ -118,8 +173,7 @@ private:
             gl::glGetShaderiv(shader, gl::GL_INFO_LOG_LENGTH, &maxLength);
             auto log{ new gl::GLchar[(std::size_t)maxLength] };
             gl::glGetShaderInfoLog(shader, maxLength, &logLength, log);
-            std::cerr << "Shader compilation failed: \n"
-                      << log << '\n';
+            std::cerr << std::format("Shader compilation of type {} failed:\n{}\n", name, log);
             delete[] log;
         }
     }
@@ -141,32 +195,23 @@ private:
         }
     }
 
-    void prepareShader(const std::string& vsSource, const std::string& fsSource)
+    gl::GLuint prepareShader(const std::string& vsSource, ShaderStage stage)
     {
+        gl::GLenum type;
+        switch (stage) {
+        case ShaderStage::VERTEX: type = gl::GL_VERTEX_SHADER; break;
+        case ShaderStage::FRAGMENT: type = gl::GL_FRAGMENT_SHADER; break;
+        case ShaderStage::GEOMETRY: type = gl::GL_GEOMETRY_SHADER; break;
+        }
+
         // compile vertex shader
-        gl::GLuint  vsId{ glCreateShader(gl::GL_VERTEX_SHADER) };
+        gl::GLuint  vsId{ glCreateShader(type) };
         const char* vsSourceCharPtr{ vsSource.c_str() };
         gl::glShaderSource(vsId, 1, &vsSourceCharPtr, nullptr);
         gl::glCompileShader(vsId);
-        shaderCompileInfo(vsId);
+        shaderCompileInfo(vsId, stage);
 
-        // compile fragment shader
-        gl::GLuint  fsId{ glCreateShader(gl::GL_FRAGMENT_SHADER) };
-        const char* fsSourceCharPtr{ fsSource.c_str() };
-        gl::glShaderSource(fsId, 1, &fsSourceCharPtr, nullptr);
-        gl::glCompileShader(fsId);
-        shaderCompileInfo(fsId);
-
-        // create shader program then link shaders to it
-        m_id = gl::glCreateProgram();
-        gl::glAttachShader(m_id, vsId);
-        gl::glAttachShader(m_id, fsId);
-        gl::glLinkProgram(m_id);
-        shaderLinkInfo(m_id);
-
-        // delete shader objects
-        gl::glDeleteShader(vsId);
-        gl::glDeleteShader(fsId);
+        return vsId;
     }
 
     template <UniformValueType Type, std::size_t N>
@@ -174,7 +219,10 @@ private:
     void setUniform_impl(const std::string& name, const Type* value)
     {
         gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
-        auto      val{ const_cast<Type*>(value) };
+        if (loc == -1) {
+            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
+        }
+        auto val{ const_cast<Type*>(value) };
 
         // clang-format off
         // if      constexpr (std::same_as<Type, gl::GLfloat>  && N == 1) gl::glUniform1fv(loc, 1, &val[0]);
