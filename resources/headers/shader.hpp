@@ -6,11 +6,14 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <glm/detail/qualifier.hpp>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <type_traits>
 
 #include <glbinding/gl/gl.h>
+#include <glm/glm.hpp>
 
 #define _shader_hpp_glUniform_(num, type) glUniform##num##type
 
@@ -21,6 +24,9 @@ concept UniformValueType = ((std::same_as<GLtype, gl::GLfloat>
                              || std::same_as<GLtype, gl::GLuint>
                              || std::same_as<GLtype, bool>))
                            && std::is_fundamental_v<GLtype>;
+
+template <typename Float>
+concept UniformMatType = std::same_as<Float, gl::GLfloat> || std::same_as<Float, gl::GLdouble>;
 
 class Shader
 {
@@ -104,18 +110,28 @@ public:
         gl::glDeleteProgram(m_id);
     }
 
+public:
     void use()
     {
         gl::glUseProgram(m_id);
     }
 
-    template <UniformValueType Type, std::size_t N>
-        requires(N >= 2 && N <= 4)
-    void setUniform(const std::string& name, const std::array<Type, N>& value)
-    {
-        setUniform_impl<Type, N>(name, &value[0]);
-    }
+    // glm vector
+    // clang-format off
+    template <UniformValueType Type> void setUniform(const std::string& name, const glm::vec<2, Type>& vec) { setUniform_vec_impl<Type, 2>(name, &vec[0]); }
+    template <UniformValueType Type> void setUniform(const std::string& name, const glm::vec<3, Type>& vec) { setUniform_vec_impl<Type, 3>(name, &vec[0]); }
+    template <UniformValueType Type> void setUniform(const std::string& name, const glm::vec<4, Type>& vec) { setUniform_vec_impl<Type, 4>(name, &vec[0]); }
 
+    // glm::matrix
+    template <UniformMatType Type> void setUniform(const std::string& name, const glm::mat<2, 2, Type>& mat4) { setUniform_mat_impl<Type, 2>(name, mat4); }
+    template <UniformMatType Type> void setUniform(const std::string& name, const glm::mat<3, 3, Type>& mat3) { setUniform_mat_impl<Type, 3>(name, mat3); }
+    template <UniformMatType Type> void setUniform(const std::string& name, const glm::mat<4, 4, Type>& mat4) { setUniform_mat_impl<Type, 4>(name, mat4); }
+
+    // simple array; 2 to 4 elements
+    template <UniformValueType Type, std::size_t N> requires(N >= 2 && N <= 4) void setUniform(const std::string& name, const std::array<Type, N>& value) { setUniform_vec_impl<Type, N>(name, &value[0]); }
+    // clang-format on
+
+    // one value
     template <UniformValueType Type>
     void setUniform(const std::string& name, Type value)
     {
@@ -133,6 +149,7 @@ public:
         // clang-format on
     }
 
+    // two values (use array)
     template <UniformValueType Type>
     void setUniform(const std::string& name, Type v0, Type v1)
     {
@@ -140,6 +157,7 @@ public:
         setUniform<Type, 2>(name, value);
     }
 
+    // three values (use array)
     template <UniformValueType Type>
     void setUniform(const std::string& name, Type v0, Type v1, Type v2)
     {
@@ -147,6 +165,7 @@ public:
         setUniform<Type, 3>(name, value);
     }
 
+    // four values (use array)
     template <UniformValueType Type>
     void setUniform(const std::string& name, Type v0, Type v1, Type v2, Type v3)
     {
@@ -214,9 +233,10 @@ private:
         return vsId;
     }
 
+    // vector
     template <UniformValueType Type, std::size_t N>
         requires(N >= 2 && N <= 4)
-    void setUniform_impl(const std::string& name, const Type* value)
+    void setUniform_vec_impl(const std::string& name, const Type* value)
     {
         gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
         if (loc == -1) {
@@ -225,31 +245,45 @@ private:
         auto val{ const_cast<Type*>(value) };
 
         // clang-format off
-        // if      constexpr (std::same_as<Type, gl::GLfloat>  && N == 1) gl::glUniform1fv(loc, 1, &val[0]);
-        // else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 2) gl::glUniform2fv(loc, 1, &val[0]);
         if      constexpr (std::same_as<Type, gl::GLfloat>  && N == 2) gl::glUniform2fv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 3) gl::glUniform3fv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLfloat>  && N == 4) gl::glUniform4fv(loc, 1, &val[0]);
 
-        // else if constexpr (std::same_as<Type, gl::GLdouble> && N == 1) gl::glUniform1dv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLdouble> && N == 2) gl::glUniform2dv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLdouble> && N == 3) gl::glUniform3dv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLdouble> && N == 4) gl::glUniform4dv(loc, 1, &val[0]);
 
-        // else if constexpr (std::same_as<Type, gl::GLint>    && N == 1) gl::glUniform1iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLint>    && N == 2) gl::glUniform2iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLint>    && N == 3) gl::glUniform3iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLint>    && N == 4) gl::glUniform4iv(loc, 1, &val[0]);
 
-        // else if constexpr (std::same_as<Type, bool>         && N == 1) gl::glUniform1iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, bool>         && N == 2) gl::glUniform2iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, bool>         && N == 3) gl::glUniform3iv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, bool>         && N == 4) gl::glUniform4iv(loc, 1, &val[0]);
 
-        // else if constexpr (std::same_as<Type, gl::GLuint>   && N == 1) gl::glUniform1uiv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLuint>   && N == 2) gl::glUniform2uiv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLuint>   && N == 3) gl::glUniform3uiv(loc, 1, &val[0]);
         else if constexpr (std::same_as<Type, gl::GLuint>   && N == 4) gl::glUniform4uiv(loc, 1, &val[0]);
+        // clang-format on
+    }
+
+    // matrix
+    template <UniformMatType Type, std::size_t N>
+        requires(N >= 2 && N <= 4)
+    void setUniform_mat_impl(const std::string& name, const glm::mat<N, N, Type>& mat)
+    {
+        gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
+        if (loc == -1) {
+            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
+        }
+        // clang-format off
+        if      constexpr (std::same_as<Type, gl::GLfloat> && N == 2) gl::glUniformMatrix2fv(loc, 1, gl::GL_FALSE, &mat[0][0]);
+        else if constexpr (std::same_as<Type, gl::GLfloat> && N == 3) gl::glUniformMatrix3fv(loc, 1, gl::GL_FALSE, &mat[0][0]);
+        else if constexpr (std::same_as<Type, gl::GLfloat> && N == 4) gl::glUniformMatrix4fv(loc, 1, gl::GL_FALSE, &mat[0][0]);
+
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 2) gl::glUniformMatrix2dv(loc, 1, gl::GL_FALSE, &mat[0][0]);
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 3) gl::glUniformMatrix3dv(loc, 1, gl::GL_FALSE, &mat[0][0]);
+        else if constexpr (std::same_as<Type, gl::GLdouble> && N == 4) gl::glUniformMatrix4dv(loc, 1, gl::GL_FALSE, &mat[0][0]);
         // clang-format on
     }
 };
