@@ -36,7 +36,7 @@ private:
     };
 
 public:
-    gl::GLuint m_id;
+    const gl::GLuint m_id;
 
 public:
     Shader() = delete;
@@ -46,6 +46,7 @@ public:
         std::filesystem::path                fsPath,
         std::optional<std::filesystem::path> gsPath = {}
     )
+        : m_id{ gl::glCreateProgram() }    // create program
     {
         std::string   vsSource;
         std::ifstream vsFile{ vsPath };
@@ -88,8 +89,7 @@ public:
             }
         }();
 
-        // create shader program then link shaders to it
-        m_id = gl::glCreateProgram();
+        // link shaders to shader program
         gl::glAttachShader(m_id, vsId);
         gl::glAttachShader(m_id, fsId);
         if (gsId) { gl::glAttachShader(m_id, gsId.value()); }
