@@ -243,3 +243,8 @@ while(...)
     [...]
 }
 ```
+
+## Result
+
+![box](../../../resources/screenshots/1.4_textures.jpg)
+![box](../../../resources/screenshots/1.4_textures_texture_unit.jpg)

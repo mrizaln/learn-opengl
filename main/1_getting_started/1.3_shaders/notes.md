@@ -254,3 +254,8 @@ Move the code related to shader management into its own file:
 
 - [shader.hpp](./code/shader.hpp)
 - [app_with_shader_class.hpp](./code/app_with_shader_class.hpp)
+
+## Result
+
+![triangle](../../../resources/screenshots/1.3_shaders.jpg)
+![triangle_inverted](../../../resources/screenshots/1.3_shaders_inverted.jpg)

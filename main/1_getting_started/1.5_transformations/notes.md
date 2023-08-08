@@ -309,3 +309,7 @@ glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 **Note**: GLGL use **column-major** ordering for its `mat` types unlike C and C++ that uses **row-major** ordering. However, GLM stores their matrix layout in column-major ordering, so there is no need to transpose their matrices'
 
 ---
+
+## Result
+
+![box](../../../resources/screenshots/1.5_transformations.jpg)

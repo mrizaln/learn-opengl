@@ -344,3 +344,10 @@ The draw call using EBO is different
 glBindVertexArray(vao);
 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 ```
+
+## Result
+
+![triangle_filled](../../../resources/screenshots/1.2_hello_triangle_triangle_filled.jpg)
+![triangle_wireframe](../../../resources/screenshots/1.2_hello_triangle_triangle_wireframe.jpg)
+![rectangle_filled](../../../resources/screenshots/1.2_hello_triangle_rectangle_filled.jpg)
+![rectangle_wireframe](../../../resources/screenshots/1.2_hello_triangle_rectangle_wireframe.jpg)

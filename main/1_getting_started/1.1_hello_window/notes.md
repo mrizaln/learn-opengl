@@ -131,3 +131,7 @@ while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();           // checks if any events are triggered
 }
 ```
+
+## Result
+
+![image](../../../resources/screenshots/1.1_hello_window.jpg)
