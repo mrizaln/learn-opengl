@@ -1,4 +1,10 @@
-#include "app.hpp"
+#define USE_CAMERA_HEADER
+
+#ifdef USE_CAMERA_HEADER
+#    include "app_with_camera_header.hpp"
+#else
+#    include "app.hpp"
+#endif
 
 int main()
 {
