@@ -8,14 +8,13 @@
 #include <cstddef>
 #include <format>
 #include <functional>
-#include <glm/detail/qualifier.hpp>
 #include <iostream>
-#include <unordered_map>
 #include <memory>
 #include <optional>
 #include <ranges>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #include <glbinding/gl/gl.h>
@@ -34,9 +33,9 @@ using namespace gl;
 class App
 {
 public:
-    static constexpr int              s_windowWidth  = 800;
-    static constexpr int              s_windowHeight = 600;
-    static constexpr std::string_view s_windowName   = "LearnOpenGL";
+    static constexpr int              DEFAULT_WINDOW_WIDTH  = 800;
+    static constexpr int              DEFAULT_WINDOW_HEIGHT = 600;
+    static constexpr std::string_view DEFAULT_WINDOW_NAME   = "LearnOpenGL";
 
     template <typename T>
     using Pair = std::array<T, 2>;
@@ -202,8 +201,8 @@ private:
 private:
     // window
     unique_GLFWwindow m_window{ nullptr };
-    int               m_windowWidth{ s_windowWidth };
-    int               m_windowHeight{ s_windowHeight };
+    int               m_windowWidth{ DEFAULT_WINDOW_WIDTH };
+    int               m_windowHeight{ DEFAULT_WINDOW_HEIGHT };
 
     // camera
     glm::vec3 m_cameraPos{ 0.0f, 0.0f, 3.0f };
@@ -296,7 +295,7 @@ private:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        unique_GLFWwindow window{ glfwCreateWindow(s_windowWidth, s_windowHeight, s_windowName.data(), nullptr, nullptr) };
+        unique_GLFWwindow window{ glfwCreateWindow(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_NAME.data(), nullptr, nullptr) };
         if (window == nullptr) {
             std::cerr << "Failed to create GLFW window\n";
             glfwTerminate();
@@ -307,7 +306,7 @@ private:
 
         glbinding::initialize(glfwGetProcAddress);
 
-        glViewport(0, 0, s_windowWidth, s_windowHeight);
+        glViewport(0, 0, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
 
         // enable depth test
         glEnable(GL_DEPTH_TEST);
@@ -446,7 +445,7 @@ private:
     {
         /// once event (toggle)
         // wireframe
-        addKeyEventHandler(GLFW_KEY_W, GLFW_MOD_SHIFT, KeyEventHandler::KeyActionType::ONCE, [this] {
+        addKeyEventHandler(GLFW_KEY_W, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             if ((m_drawWireFrame = !m_drawWireFrame)) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             } else {
@@ -455,7 +454,7 @@ private:
         });
 
         // vsync
-        addKeyEventHandler(GLFW_KEY_V, GLFW_MOD_SHIFT, KeyEventHandler::KeyActionType::ONCE, [this] {
+        addKeyEventHandler(GLFW_KEY_V, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             if ((m_vsync = !m_vsync)) {
                 glfwSwapInterval(1);
             } else {
@@ -464,7 +463,7 @@ private:
         });
 
         // invert color
-        addKeyEventHandler(GLFW_KEY_I, GLFW_MOD_SHIFT, KeyEventHandler::KeyActionType::ONCE, [this] {
+        addKeyEventHandler(GLFW_KEY_I, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             auto& [name, value]{ u_invertColor };
             if ((value = !value)) {
                 m_shader.setUniform(name, true);
@@ -474,7 +473,7 @@ private:
         });
 
         // invert render
-        addKeyEventHandler(GLFW_KEY_Z, GLFW_MOD_SHIFT, KeyEventHandler::KeyActionType::ONCE, [this] {
+        addKeyEventHandler(GLFW_KEY_Z, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             auto& value{ m_invertRender };
             if ((value = !value)) {
                 glDepthFunc(GL_GREATER);
@@ -486,7 +485,7 @@ private:
         });
 
         // capture mouse
-        addKeyEventHandler(GLFW_KEY_C, GLFW_MOD_SHIFT, KeyEventHandler::KeyActionType::ONCE, [this] {
+        addKeyEventHandler(GLFW_KEY_C, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             if ((m_captureMouse = !m_captureMouse)) {
                 glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 m_firstMouse = false;
@@ -678,7 +677,7 @@ private:
         ++numFrames;
         if ((sumTime += m_deltaTime) >= timeInterval) {
             auto avgTime{ sumTime / numFrames };
-            auto newTitle{ std::format("{} [{} FPS | {:.2f}ms]", s_windowName, static_cast<int>(1 / avgTime), avgTime * 1000) };
+            auto newTitle{ std::format("{} [{} FPS | {:.2f}ms]", DEFAULT_WINDOW_NAME, static_cast<int>(1 / avgTime), avgTime * 1000) };
             glfwSetWindowTitle(m_window.get(), newTitle.c_str());
             sumTime   = 0;
             numFrames = 0;
