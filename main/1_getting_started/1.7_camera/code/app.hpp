@@ -216,7 +216,6 @@ private:
 
     // mouse
     bool                m_captureMouse{ false };
-    bool                m_firstMouse{ true };
     glm::vec<2, double> m_lastMousePosition{ 0.0, 0.0 };
 
     // gl objects
@@ -344,6 +343,13 @@ private:
     {
         setCallbacks();
         setDefaultKeyEventHandler();
+
+        // set last mouse Position (prevent sudden jump)
+        glfwGetCursorPos(m_window.get(), &m_lastMousePosition.x, &m_lastMousePosition.y);
+
+        if (m_captureMouse) {
+            glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
     }
 
 public:
@@ -392,13 +398,6 @@ private:
 
             auto& lastX{ app.m_lastMousePosition.x };
             auto& lastY{ app.m_lastMousePosition.y };
-
-            if (app.m_firstMouse)    // initially set to true
-            {
-                lastX            = xpos;
-                lastY            = ypos;
-                app.m_firstMouse = false;
-            }
 
             float xoffset = static_cast<float>(xpos - lastX);
             float yoffset = static_cast<float>(lastY - ypos);
@@ -488,10 +487,8 @@ private:
         addKeyEventHandler(GLFW_KEY_C, GLFW_MOD_ALT, KeyEventHandler::KeyActionType::ONCE, [this] {
             if ((m_captureMouse = !m_captureMouse)) {
                 glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                m_firstMouse = false;
             } else {
                 glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                m_firstMouse = true;
             }
         });
 
