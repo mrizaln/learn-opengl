@@ -301,3 +301,9 @@ And lastly don't forget to register the scroll callback function:
 ```cpp
 glfwSetScrollCallback(window, scroll_callback);
 ```
+
+## Result
+
+![camera_side](../../../resources/screenshots/1.7_camera_side.jpg)
+![camera_low_fov](../../../resources/screenshots/1.7_camera_low_fov.jpg)
+![camera_inside](../../../resources/screenshots/1.7_camera_inside.jpg)
