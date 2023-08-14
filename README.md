@@ -19,7 +19,9 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 
 - Fedora
 
-  `$ sudo dnf install glfw glfw-devel stb-devel glm-devel`
+  ```
+  sudo dnf install glfw glfw-devel stb-devel glm-devel
+  ```
 
 - Others
 
@@ -38,8 +40,8 @@ Every chapter has its own code directory. Create a build directory inside that d
 > For example: `main/1_getting_started/1.2_hello_triangle/code/`
 
 ```sh
-$ cd main/1_getting_started/1.2_hello_triangle/code/
-$ mkdir build && cd build
+cd main/1_getting_started/1.2_hello_triangle/code/
+mkdir build && cd build
 ```
 
 Then, run the cmake command below:
