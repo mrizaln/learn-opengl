@@ -102,3 +102,7 @@ lightCubeShader.use();
 glBindVertexArray(lightCubeVAO);
 glDrawArrays(GL_TRIANGLES, 0, 36);
 ```
+
+## Result
+
+![result](../../../resources/screenshots/2.1_colors.jpg)
