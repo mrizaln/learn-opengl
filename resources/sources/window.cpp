@@ -31,7 +31,9 @@ namespace window
 {
     void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
     {
-        Window& windowWindow{ *static_cast<Window*>(glfwGetWindowUserPointer(window)) };
+        Window* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
+        if (windowWindow == nullptr) { return; }
+
         windowWindow.setWindowSize(width, height);
     }
 
