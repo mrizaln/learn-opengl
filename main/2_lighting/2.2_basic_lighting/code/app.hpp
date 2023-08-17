@@ -56,89 +56,49 @@ public:
 
     // clang-format off
     static constexpr std::array<VertexData, 36> s_cubeVertices{ {
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
-        { .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
-        { .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
-        { .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
-        { .pos = {-0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = {  0.5f, -0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = {  0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = {  0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = { -0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = { 0.0f,  0.0f, -1.0f } },
 
-        { .pos = {-0.5f, -0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
-        { .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
-        { .pos = {-0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
-        { .pos = {-0.5f, -0.5f,  0.5f}, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = { -0.5f, -0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = {  0.5f, -0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = { -0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
+        { .pos = { -0.5f, -0.5f,  0.5f }, .normal = { 0.0f,  0.0f,  1.0f } },
 
-        { .pos = {-0.5f,  0.5f,  0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
-        { .pos = {-0.5f,  0.5f, -0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
-        { .pos = {-0.5f, -0.5f,  0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
-        { .pos = {-0.5f,  0.5f,  0.5f}, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f,  0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f, -0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f,  0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f,  0.5f }, .normal = {-1.0f,  0.0f,  0.0f } },
 
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
-        { .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f, -0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f, -0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f, -0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f,  0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 1.0f,  0.0f,  0.0f } },
 
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f, -0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
-        { .pos = { 0.5f, -0.5f,  0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
-        { .pos = {-0.5f, -0.5f,  0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
-        { .pos = {-0.5f, -0.5f, -0.5f}, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f, -0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f,  0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = {  0.5f, -0.5f,  0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f,  0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
+        { .pos = { -0.5f, -0.5f, -0.5f }, .normal = { 0.0f, -1.0f,  0.0f } },
 
-        { .pos = {-0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
-        { .pos = { 0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
-        { .pos = { 0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
-        { .pos = {-0.5f,  0.5f,  0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
-        { .pos = {-0.5f,  0.5f, -0.5f}, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = {  0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f,  0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
+        { .pos = { -0.5f,  0.5f, -0.5f }, .normal = { 0.0f,  1.0f,  0.0f } },
     } };
     // clang-format on
-
-    class ImageData
-    {
-    public:
-        const int                  m_width{};
-        const int                  m_height{};
-        const int                  m_nrChannels{};
-        const unsigned char* const m_data{};
-
-    public:
-        ImageData(const ImageData&)            = delete;
-        ImageData& operator=(const ImageData&) = delete;
-
-        ~ImageData()
-        {
-            stbi_image_free(const_cast<unsigned char*>(m_data));
-        }
-
-        // private:
-        // don't use this directly, use from() instead
-        ImageData(int w, int h, int c, unsigned char* d)
-            : m_width{ w }
-            , m_height{ h }
-            , m_nrChannels{ c }
-            , m_data{ d }
-        {
-        }
-
-    public:
-        static std::optional<ImageData> from(std::filesystem::path imagePath)
-        {
-            int            width, height, nrChannels;
-            unsigned char* data{ stbi_load(imagePath.c_str(), &width, &height, &nrChannels, 0) };
-            if (!data) {
-                std::cerr << std::format("Failed to load image at {}\n", imagePath.string());
-                return {};
-            }
-            return std::make_optional<ImageData>(width, height, nrChannels, data);
-        }
-    };
 
     template <typename T>
     struct UniformData
@@ -531,15 +491,9 @@ private:
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    // TODO: implement this!
-    void prepareLight()
-    {
-    }
-
     void prepare()
     {
         prepareObject();
-        prepareLight();
     }
 
     void processInput(GLFWwindow* window)
@@ -643,8 +597,7 @@ private:
         }
     }
 
-    void
-    readDeviceInformation()
+    void readDeviceInformation()
     {
         // device information
         auto vendor{ glGetString(GL_VENDOR) };        // Returns the vendor
