@@ -35,7 +35,7 @@ Idk, download the dependencies manually I guess.
 
 ## Compiling
 
-Before anything else, compile the glbinding submodule. The instruction can be found **[here](https://github.com/cginternals/glbinding#build-instructions)**, but skip the step of cloning the repository and selecting its tag. This step only needs to be done once.
+Before anything else, compile the [glbinding submodule](resources/lib). The instruction can be found **[here](https://github.com/cginternals/glbinding#build-instructions)**, but skip the step of cloning the repository and selecting its tag. This step only needs to be done once.
 
 Every chapter has its own code directory. Create a build directory inside that directory.
 
