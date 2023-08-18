@@ -4,13 +4,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-project(ProjectName)
+project(LearnOpenGL)
 
 find_package(glfw3 REQUIRED)
+find_package(glbinding REQUIRED PATHS ./lib/glbinding)
 
-add_subdirectory(./lib/glbinding)
-
-# integrity test
 set(MAIN_EXE main)
 add_executable(${MAIN_EXE} main.cpp)
 

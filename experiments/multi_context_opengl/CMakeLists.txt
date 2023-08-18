@@ -11,6 +11,7 @@ add_compile_options(-Wno-subobject-linkage)    # turn off subobject linkage warn
 project(multi_context_opengl)
 
 find_package(glfw3 REQUIRED)
+find_package(glbinding REQUIRED PATHS ./lib/glbinding)
 
 include_directories(
     ${glfw3_INCLUDE_DIRS}
@@ -18,7 +19,6 @@ include_directories(
     ./include
 )
 
-add_subdirectory(./lib/glbinding)
 
 if (ENABLE_SANTIZER)
     add_compile_options(-fsanitize=address)
@@ -43,7 +43,6 @@ target_include_directories(${MAIN_EXE} PUBLIC
 target_link_libraries(${MAIN_EXE} PUBLIC
     glfw
     glbinding::glbinding
-    glbinding::glbinding-aux
 )
 
 add_custom_command(
