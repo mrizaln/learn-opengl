@@ -47,6 +47,6 @@ mkdir build && cd build
 Then, run the cmake command below:
 
 ```sh
-$ cmake ..
-$ cmake --build . -j$(nproc)
+cmake ..
+cmake --build . -j$(nproc)
 ```
