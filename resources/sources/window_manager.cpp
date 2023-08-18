@@ -68,13 +68,6 @@ namespace window
         std::this_thread::sleep_for(msPollRate);
     }
 
-    void WindowManager::pollEvents(std::size_t fpsPollRate)
-    {
-        using namespace std::chrono_literals;
-        auto duration{ std::chrono::duration_cast<std::chrono::milliseconds>(1000ms / fpsPollRate) };
-        pollEvents(duration);
-    }
-
     void WindowManager::waitEvents()
     {
         glfwWaitEvents();

@@ -15,6 +15,14 @@ namespace window
 {
     using unique_GLFWwindow = std::unique_ptr<GLFWwindow, decltype([](GLFWwindow* win) { glfwDestroyWindow(win); })>;
 
+    // turns fps to milliseconds
+    inline std::chrono::milliseconds operator""_fps(unsigned long long fps)
+    {
+        using namespace std::chrono_literals;
+        auto duration{ std::chrono::duration_cast<std::chrono::milliseconds>(1000ms / fps) };
+        return duration;
+    }
+
     class Window;
 
     class WindowManager
@@ -36,10 +44,6 @@ namespace window
         // this function poll events for all windows.
         // @thread_safety: call this function from the main thread only
         void pollEvents(std::chrono::milliseconds msPollRate);
-
-        // this function poll events for all windows
-        // @thread_safety: call this function from the main thread only
-        void pollEvents(std::size_t fpsPollRate);
 
         // like pollEvents, but this function will block the thread until an event is received.
         // @thread_safety: call this function from the main thread only
