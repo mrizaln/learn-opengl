@@ -1,10 +1,10 @@
 #include <array>
+#include <atomic>
+#include <chrono>
 #include <format>
-#include <glm/ext/matrix_transform.hpp>
 #include <iostream>
 #include <optional>
 #include <thread>
-#include <atomic>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -13,12 +13,6 @@
 
 #include "glbinding/gl/gl.h"
 #include "glbinding/glbinding.h"
-
-#include "glbinding-aux/ContextInfo.h"
-#include "glbinding-aux/Meta.h"
-#include "glbinding-aux/types_to_string.h"
-#include "glbinding-aux/ValidVersions.h"
-#include "glbinding-aux/debug.h"
 
 #include "window.hpp"
 #include "window_manager.hpp"
@@ -199,8 +193,13 @@ int main(int, char*[])
     std::jthread window4Thread{ windowFunction, std::move(window4), std::array<float, 3>{ 0.1f, 0.2f, 0.2f }, false };
 
     while (windowManager.hasWindowOpened()) {
-        windowManager.pollEvents(120);    // 2x vsync
-        // windowManager.waitEvents();
+        using window::operator""_fps;
+        windowManager.pollEvents(120_fps);    // using _fps literal
+
+        // using std::chrono_literals::operator""ms;
+        // windowManager.pollEvents(10ms);       // using ms literal
+
+        // windowManager.waitEvents();    // blocking thread, wait for events
     }
 
     window1Thread.join();
