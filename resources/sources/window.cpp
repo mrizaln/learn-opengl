@@ -34,7 +34,9 @@ namespace window
         Window* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        windowWindow.setWindowSize(width, height);
+        windowWindow->enqueueTask([windowWindow, width, height] {
+            windowWindow->setWindowSize(width, height);
+        });
     }
 
     void Window::keyCallback(GLFWwindow* window, int key, int /* scancode */, int action, int mods)
