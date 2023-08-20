@@ -206,8 +206,12 @@ namespace util
     };
 }
 
+#define _SCOPE_TIME_LOGGER_CONCAT_IMPL(x, y) x##y
+#define _SCOPE_TIME_LOGGER_CONCAT(x, y)      _SCOPE_TIME_LOGGER_CONCAT_IMPL(x, y)
+#define _SCOPE_TIME_LOGGER_RANDOM_INSTANCE   _SCOPE_TIME_LOGGER_CONCAT(_scope_time_logger_instance_timer_, __COUNTER__)
+
 #define SCOPE_TIME_LOG(name) \
-    auto _scope_time_logger_instance_timer_##__COUNTER__ { util::ScopeTimeLogger::add(name) }
+    auto _SCOPE_TIME_LOGGER_RANDOM_INSTANCE { util::ScopeTimeLogger::add(name) }
 #define FUNCTION_TIME_LOG() \
     SCOPE_TIME_LOG(__func__)
 
