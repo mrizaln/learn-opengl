@@ -27,7 +27,7 @@ struct UniformData
     T           m_value;
 };
 
-struct Material
+struct MaterialUniform
 {
     std::string m_name;
     glm::vec3   m_ambient;
@@ -44,7 +44,7 @@ struct Material
     }
 };
 
-struct Light
+struct LightUniform
 {
     std::string m_name;
     glm::vec3   m_position;
@@ -72,8 +72,8 @@ private:
     Shader          m_lightShader;
     Cube            m_cube;
     Cube            m_lightCube;
-    Material        m_material;
-    Light           m_light;
+    MaterialUniform m_material;
+    LightUniform    m_light;
 
     // options
     bool m_vsync{ true };
@@ -146,6 +146,21 @@ public:
         m_shader.use();
         m_material.applyUniform(m_shader);
         m_light.applyUniforms(m_shader);
+    }
+
+    void readDeviceInformation()
+    {
+        // device information
+        auto vendor{ glGetString(gl::GL_VENDOR) };        // Returns the vendor
+        auto renderer{ glGetString(gl::GL_RENDERER) };    // Returns a hint to the model
+        std::cout << "Device: " << renderer << '\n';
+        std::cout << "Vendor: " << vendor << '\n';
+
+        // int nrAttributes;
+        // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+        // std::cout << "Maximum number of vertex attributes supported: " << nrAttributes << '\n';
+
+        std::cout << '\n';
     }
 
     void render()
@@ -278,20 +293,5 @@ private:
                     m_camera.lookAround(xoffset, yoffset);
                 }
             });
-    }
-
-    void readDeviceInformation()
-    {
-        // device information
-        auto vendor{ glGetString(gl::GL_VENDOR) };        // Returns the vendor
-        auto renderer{ glGetString(gl::GL_RENDERER) };    // Returns a hint to the model
-        std::cout << "Device: " << renderer << '\n';
-        std::cout << "Vendor: " << vendor << '\n';
-
-        // int nrAttributes;
-        // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-        // std::cout << "Maximum number of vertex attributes supported: " << nrAttributes << '\n';
-
-        std::cout << '\n';
     }
 };

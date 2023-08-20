@@ -44,6 +44,7 @@ int main()
             App::createInstance(window);
             auto& app{ App::getInstance()->get() };
             app.init();
+            app.readDeviceInformation();
 
             window.run([&app] {
                 SCOPE_TIME_LOG("Window::run lambda");
