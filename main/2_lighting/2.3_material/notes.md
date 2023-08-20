@@ -110,3 +110,4 @@ lightingShader.setVec3("light.diffuse", diffuseColor);
 ## Result
 
 ![result](../../../resources/screenshots/2.3_materials.jpg)
+![result2](../../../resources/screenshots/2.3_materials_experiments.jpg)
