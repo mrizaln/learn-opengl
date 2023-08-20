@@ -79,8 +79,22 @@ namespace window
         return m_windows.size() != 0;
     }
 
+    void WindowManager::enqueueWindowTask(std::size_t windowId, std::function<void()>&& task)
+    {
+        std::scoped_lock lock{ m_queueMutex };
+        m_windowTaskQueue.emplace(windowId, std::move(task));
+    }
+
+    void WindowManager::enqueueTask(std::function<void()>&& task)
+    {
+        std::scoped_lock lock{ m_queueMutex };
+        m_taskQueue.emplace(std::move(task));
+    }
+
     void WindowManager::checkTasks()
     {
+        std::lock_guard lock{ m_queueMutex };
+
         // window deletion
         while (!m_windowDeleteQueue.empty()) {
             std::size_t windowId{ m_windowDeleteQueue.front() };
@@ -94,21 +108,22 @@ namespace window
             m_windows.erase(found);
         }
 
-        // task requests
-        while (!m_taskQueue.empty()) {
-            auto [id, fun]{ std::move(m_taskQueue.front()) };
-            m_taskQueue.pop();
+        // window task requests
+        while (!m_windowTaskQueue.empty()) {
+            auto [id, fun]{ std::move(m_windowTaskQueue.front()) };
+            m_windowTaskQueue.pop();
             if (m_windows.contains(id)) {
                 fun();
             } else {
                 std::cerr << std::format("Task for window {} failed: window has destroyed\n", id);
             }
         }
-    }
 
-    void WindowManager::enqueueTask(std::size_t windowId, std::function<void()>&& task)
-    {
-        std::scoped_lock lock{ m_queueMutex };
-        m_taskQueue.emplace(windowId, std::move(task));
+        // general task request
+        while (!m_taskQueue.empty()) {
+            auto fun{ std::move(m_taskQueue.front()) };
+            m_taskQueue.pop();
+            fun();
+        }
     }
 }

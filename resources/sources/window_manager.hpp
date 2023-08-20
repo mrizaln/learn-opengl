@@ -52,8 +52,15 @@ namespace window
         // @thread_safety: this function can be called from any thread
         void requestDeleteWindow(std::size_t id);
 
+        // this function is supposed to be called from a window thread.
         // @thread_safety: this function can be called from any thread
-        void enqueueTask(std::size_t windowId, std::function<void()>&& func);
+        void enqueueWindowTask(std::size_t windowId, std::function<void()>&& func);
+
+        // this function can be called for any task that needs to be executed in the main thread.
+        // for window task, use `enqueueWindowTask` instead.
+        // @thread_safety: this function can be called from any thread
+        void enqueueTask(std::function<void()>&& func);
+
         bool hasWindowOpened();
 
     private:
@@ -66,7 +73,8 @@ namespace window
         std::unordered_map<std::size_t, unique_GLFWwindow>        m_windows;
         std::size_t                                               m_windowCount;
         std::queue<std::size_t>                                   m_windowDeleteQueue;
-        std::queue<std::pair<std::size_t, std::function<void()>>> m_taskQueue;
+        std::queue<std::function<void()>>                         m_taskQueue;
+        std::queue<std::pair<std::size_t, std::function<void()>>> m_windowTaskQueue;
 
         std::mutex m_queueMutex;
     };
