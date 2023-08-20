@@ -11,6 +11,7 @@
 #include "window_manager.hpp"
 #include "scope_time_logger.hpp"
 #include "app.hpp"
+#include "app_various_materials.hpp"
 
 static constexpr int         DEFAULT_WINDOW_WIDTH  = 800;
 static constexpr int         DEFAULT_WINDOW_HEIGHT = 600;
@@ -38,15 +39,10 @@ int main()
     }
 
     auto& windowManager{ WindowManager::getInstance()->get() };
-    auto  maybeWindow{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT) };
-    if (!maybeWindow.has_value()) {
-        std::cerr << "Failed to create window\n";
-        glfwTerminate();
-        return 1;
-    }
 
-    std::jthread windowThread{
-        [window = std::move(maybeWindow.value())]() mutable {
+    auto         window1{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT).value() };    // ignore possible nullopt :>
+    std::jthread window1Thread{
+        [window = std::move(window1)]() mutable {
             window.useHere();
 
             App::createInstance(window);
@@ -55,12 +51,32 @@ int main()
             app.readDeviceInformation();
 
             window.run([&app] {
-                SCOPE_TIME_LOG("Window::run lambda");
+                SCOPE_TIME_LOG("Window::run lambda (window1)");
 
                 app.render();
             });
 
             App::destroyInstance();
+        }
+    };
+
+    auto         window2{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT).value() };    // ignore possible nullopt :>
+    std::jthread window2Thread{
+        [window = std::move(window2)]() mutable {
+            window.useHere();
+
+            App2::createInstance(window);
+            auto& app{ App2::getInstance()->get() };
+            app.init();
+            app.readDeviceInformation();
+
+            window.run([&app] {
+                SCOPE_TIME_LOG("Window::run lambda (window2)");
+
+                app.render();
+            });
+
+            App2::destroyInstance();
         }
     };
 
