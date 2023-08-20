@@ -1,6 +1,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cmath>
 #include <format>
 #include <iostream>
 #include <optional>
@@ -46,9 +47,49 @@ static constexpr std::array<glm::vec3, 10> s_cubePositions{ {
     // clang-format on
 } };
 
-void windowFunction(window::Window&& window, std::array<float, 3> color, bool multiple)
+class FpsCounter
+{
+private:
+    double m_updateInterval;
+    double m_sumTime{ 0.0 };
+    double m_avgTime{ 0.0 };
+    int    m_frames{ 0 };
+
+public:
+    FpsCounter(double updateInterval)
+        : m_updateInterval{ updateInterval } { }
+
+    // returns true if the average time was updated
+    bool update(double deltaTime)
+    {
+        m_sumTime += deltaTime;
+        m_frames++;
+
+        if (m_sumTime >= m_updateInterval) {
+            m_avgTime = m_sumTime / m_frames;
+            m_sumTime = 0.0;
+            m_frames  = 0;
+            return true;
+        }
+        return false;
+    }
+
+    double getAvgTime() const { return m_avgTime; }
+};
+
+void windowFunction(window::Window&& window, glm::vec3 color, bool multiple, bool createNewWindow = false)
 {
     using namespace window;
+
+    std::jthread newWindowThread;
+    if (createNewWindow) {
+        auto& windowManager{ WindowManager::getInstance()->get() };
+        windowManager.enqueueTask([&] {
+            // creating a new window from a thread that is not the main thread
+            auto newWindow{ windowManager.createWindow("awokwaowkoawk", 480, 360).value() };
+            newWindowThread = std::jthread{ windowFunction, std::move(newWindow), glm::vec3{ 0.5 } - color, multiple, false };
+        });
+    }
 
     window.useHere();
 
@@ -58,14 +99,24 @@ void windowFunction(window::Window&& window, std::array<float, 3> color, bool mu
     Texture            texture0{ Texture::from("./assets/texture/container.jpg", "u_texture0", 0).value() };
     Texture            texture1{ Texture::from("./assets/texture/awesomeface.png", "u_texture1", 1).value() };
     UniformData<float> u_mixValue{ "u_mixValue", 0.0f };
+    FpsCounter         fpsCounter{ 1.0 };
+
+    const std::string originalWindowTitle{ window.getProperties().m_title };
 
     using enum Window::KeyActionType;
 
     window
-        .setClearColor(std::get<0>(color), std::get<1>(color), std::get<2>(color))
-        .addKeyEventHandler({ GLFW_KEY_ESCAPE, GLFW_KEY_Q }, 0, CALLBACK, [](Window& win) { win.requestClose(); })
+        .setVsync(true)
+        .setClearColor(color.r, color.g, color.b)
+        .addKeyEventHandler({ GLFW_KEY_ESCAPE, GLFW_KEY_Q }, 0, CALLBACK, [](Window& win) {
+            win.setCaptureMouse(false);
+            win.requestClose();
+        })
         .addKeyEventHandler(GLFW_KEY_C, GLFW_MOD_ALT, CALLBACK, [](Window& win) {
             win.setCaptureMouse(!win.isMouseCaptured());
+        })
+        .addKeyEventHandler(GLFW_KEY_V, 0, CALLBACK, [](Window& win) {
+            win.setVsync(!win.isVsyncEnabled());
         })
         .addKeyEventHandler(GLFW_KEY_W, 0, CONTINUOUS, [&camera](Window& win) {
             camera.moveCamera(Camera::Movement::FORWARD, static_cast<float>((float)win.getDeltaTime()));
@@ -152,13 +203,11 @@ void windowFunction(window::Window&& window, std::array<float, 3> color, bool mu
             }());
             cube.draw();
         }
-    });
 
-    // std::cout << std::this_thread::get_id() << " done\n";
-    std::size_t       threadId;
-    std::stringstream ss;
-    ss << std::this_thread::get_id();
-    ss >> threadId;
+        if (fpsCounter.update(window.getDeltaTime())) {
+            window.updateTitle(std::format("{} [FPS: {} | {:.2f} ms]", originalWindowTitle, int(1.0 / fpsCounter.getAvgTime()), fpsCounter.getAvgTime() * 1000.0));
+        }
+    });
 }
 
 int main(int, char*[])
@@ -181,31 +230,20 @@ int main(int, char*[])
     auto& windowManager{ window::WindowManager::getInstance()->get() };
 
     auto         window1{ windowManager.createWindow("LearnOpenGL", 800, 600).value() };
-    std::jthread window1Thread{ windowFunction, std::move(window1), std::array<float, 3>{ 0.1f, 0.1f, 0.2f }, true };
+    std::jthread window1Thread{ windowFunction, std::move(window1), glm::vec3{ 0.1f, 0.1f, 0.2f }, true, true };
 
     auto         window2{ windowManager.createWindow("LearnOpenGL", 800, 600).value() };
-    std::jthread window2Thread{ windowFunction, std::move(window2), std::array<float, 3>{ 0.1f, 0.2f, 0.1f }, false };
-
-    auto         window3{ windowManager.createWindow("LearnOpenGL", 800, 600).value() };
-    std::jthread window3Thread{ windowFunction, std::move(window3), std::array<float, 3>{ 0.2f, 0.1f, 0.1f }, true };
-
-    auto         window4{ windowManager.createWindow("LearnOpenGL", 800, 600).value() };
-    std::jthread window4Thread{ windowFunction, std::move(window4), std::array<float, 3>{ 0.1f, 0.2f, 0.2f }, false };
+    std::jthread window2Thread{ windowFunction, std::move(window2), glm::vec3{ 0.1f, 0.2f, 0.1f }, false, true };
 
     while (windowManager.hasWindowOpened()) {
         using window::operator""_fps;
-        windowManager.pollEvents(120_fps);    // using _fps literal
+        windowManager.pollEvents(240_fps);    // using _fps literal
 
         // using std::chrono_literals::operator""ms;
         // windowManager.pollEvents(10ms);       // using ms literal
 
         // windowManager.waitEvents();    // blocking thread, wait for events
     }
-
-    window1Thread.join();
-    window2Thread.join();
-    window3Thread.join();
-    window4Thread.join();
 
     window::WindowManager::destroyInstance();
 
