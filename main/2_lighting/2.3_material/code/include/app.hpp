@@ -207,7 +207,7 @@ public:
         model = glm::mat4{ 1.0f };
         model = glm::translate(glm::mat4{ 1.0f }, m_light.m_position);
         model = glm::scale(model, glm::vec3(0.2f));
-        m_shader.setUniform("u_model", model);
+        m_lightShader.setUniform("u_model", model);
 
         m_lightCube.draw();
         //------------------------------------------------------
