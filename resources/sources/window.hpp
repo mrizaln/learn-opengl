@@ -60,6 +60,7 @@ namespace window
         void    enqueueTask(std::function<void()>&& func);
         void    requestClose();
         double  getDeltaTime();
+        Window& setVsync(bool value);
         Window& setClearColor(float r, float g, float b);
         Window& setCaptureMouse(bool value);
         Window& setCursorPosCallback(CursorPosCallbackFun&& func);
@@ -69,6 +70,7 @@ namespace window
         Window& addKeyEventHandler(KeyEvent key, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func);
         Window& addKeyEventHandler(std::initializer_list<KeyEvent> keys, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func);
 
+        bool              isVsyncEnabled() { return m_vsync; }
         bool              isMouseCaptured() { return m_captureMouse; }
         WindowProperties& getProperties() { return m_properties; }
         GLFWwindow*       getHandle() { return m_windowHandle; }
@@ -90,6 +92,7 @@ namespace window
         bool             m_contextInitialized{ false };
         GLFWwindow*      m_windowHandle;
         WindowProperties m_properties;
+        bool             m_vsync{ true };
 
         // input
         KeyMap               m_keyMap;

@@ -102,20 +102,31 @@ namespace window
 
             gl::glEnable(gl::GL_DEPTH_TEST);
         }
+        setVsync(m_vsync);
         glfwSetWindowUserPointer(m_windowHandle, this);
         unUse();
     }
 
     Window::Window(Window&& other)
         : m_id{ other.m_id }
+        , m_contextInitialized{ other.m_contextInitialized }
         , m_windowHandle{ other.m_windowHandle }
         , m_properties{ std::move(other.m_properties) }
+        , m_vsync{ other.m_vsync }
         , m_keyMap{ std::move(other.m_keyMap) }
+        , m_cursorPosCallback{ std::move(other.m_cursorPosCallback) }
+        , m_scrollCallback{ std::move(other.m_scrollCallback) }
+        , m_taskQueue{ std::move(other.m_taskQueue) }
+        , m_lastFrameTime{ other.m_lastFrameTime }
+        , m_deltaTime{ other.m_deltaTime }
+        , m_attachedThreadId{ other.m_attachedThreadId }
     {
         glfwSetWindowUserPointer(m_windowHandle, this);
-        other.m_id           = 0;
-        other.m_windowHandle = nullptr;
-        other.m_keyMap       = {};
+        other.m_id                = 0;
+        other.m_windowHandle      = nullptr;
+        other.m_keyMap            = {};
+        other.m_cursorPosCallback = nullptr;
+        other.m_scrollCallback    = nullptr;
     }
 
     Window::~Window()
@@ -144,6 +155,13 @@ namespace window
         m_attachedThreadId = util::getThreadId();
     }
 
+    Window& Window::setVsync(bool value)
+    {
+        m_vsync = value;
+        glfwSwapInterval(value);    // 0 for immediate updates, 1 for updates synchronized with the vertical retrace
+        return *this;
+    }
+
     Window& Window::setClearColor(float r, float g, float b)
     {
         m_properties.m_clearColor = { r, g, b };
@@ -161,7 +179,7 @@ namespace window
     {
         m_properties.m_title = title;
         auto& windowManager{ WindowManager::getInstance()->get() };
-        windowManager.enqueueTask(m_id, [this] {
+        windowManager.enqueueWindowTask(m_id, [this] {
             glfwSetWindowTitle(m_windowHandle, m_properties.m_title.c_str());
         });
     }
