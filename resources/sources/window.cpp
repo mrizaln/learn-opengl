@@ -102,8 +102,8 @@ namespace window
 
             gl::glEnable(gl::GL_DEPTH_TEST);
         }
-        unUse();
         glfwSetWindowUserPointer(m_windowHandle, this);
+        unUse();
     }
 
     Window::Window(Window&& other)
@@ -121,6 +121,7 @@ namespace window
     Window::~Window()
     {
         if (m_windowHandle != nullptr && m_id != 0) {
+            unUse();
             glfwSetWindowUserPointer(m_windowHandle, nullptr);    // remove user pointer
             auto& windowManager{ WindowManager::getInstance()->get() };
             windowManager.requestDeleteWindow(m_id);
@@ -133,9 +134,7 @@ namespace window
     {
         m_attachedThreadId = util::getThreadId();
         std::cout << std::format("window {} ({:#x}) attached to thread {:#x}\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
-
         glfwMakeContextCurrent(m_windowHandle);
-        // glfwSetWindowUserPointer(m_windowHandle, this);
     }
 
     void Window::unUse()
