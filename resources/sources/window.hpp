@@ -57,7 +57,7 @@ namespace window
         void updateTitle(const std::string& title);
         // main rendering loop
         void    run(std::function<void()>&& func);
-        bool    enqueueTask(std::function<void()>&& func);
+        void    enqueueTask(std::function<void()>&& func);
         void    requestClose();
         double  getDeltaTime();
         Window& setClearColor(float r, float g, float b);
@@ -85,18 +85,24 @@ namespace window
         void processQueuedTasks();
         void updateDeltaTime();
 
-        std::size_t                       m_id;
-        std::atomic<bool>                 m_isActive{ true };
-        GLFWwindow*                       m_windowHandle;
-        WindowProperties                  m_properties;
-        KeyMap                            m_keyMap;
-        CursorPosCallbackFun              m_cursorPosCallback;
-        ScrollCallbackFun                 m_scrollCallback;
+        // window stuff
+        std::size_t      m_id;    // imagine this is the context handle (GLFW use the same handle for the window and the context)
+        bool             m_contextInitialized{ false };
+        GLFWwindow*      m_windowHandle;
+        WindowProperties m_properties;
+
+        // input
+        KeyMap               m_keyMap;
+        CursorPosCallbackFun m_cursorPosCallback;
+        ScrollCallbackFun    m_scrollCallback;
+
         std::queue<std::function<void()>> m_taskQueue;
-        double                            m_lastFrameTime{ 0.0 };
-        double                            m_deltaTime{ 0.0 };
-        bool                              m_captureMouse{ false };
-        std::size_t                       m_attachedThreadId;
+
+        double m_lastFrameTime{ 0.0 };
+        double m_deltaTime{ 0.0 };
+
+        bool        m_captureMouse{ false };
+        std::size_t m_attachedThreadId;
 
         mutable std::mutex m_windowMutex;
         mutable std::mutex m_queueMutex;

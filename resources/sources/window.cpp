@@ -91,16 +91,19 @@ namespace window
         , m_properties{ prop }
     {
         useHere();
-        glbinding::initialize(static_cast<glbinding::ContextHandle>(m_id), glfwGetProcAddress, true);    // only resolve functions that are actually used (lazy)
+        if (!m_contextInitialized) {
+            glbinding::initialize(static_cast<glbinding::ContextHandle>(m_id), glfwGetProcAddress, true);    // only resolve functions that are actually used (lazy)
+            m_contextInitialized = true;
 
-        glfwSetFramebufferSizeCallback(m_windowHandle, Window::framebufferSizeCallback);
-        glfwSetKeyCallback(m_windowHandle, Window::keyCallback);
-        glfwSetCursorPosCallback(m_windowHandle, Window::cursorPosCallback);
-        glfwSetScrollCallback(m_windowHandle, Window::scrollCallback);
+            glfwSetFramebufferSizeCallback(m_windowHandle, Window::framebufferSizeCallback);
+            glfwSetKeyCallback(m_windowHandle, Window::keyCallback);
+            glfwSetCursorPosCallback(m_windowHandle, Window::cursorPosCallback);
+            glfwSetScrollCallback(m_windowHandle, Window::scrollCallback);
 
-        gl::glEnable(gl::GL_DEPTH_TEST);
-
+            gl::glEnable(gl::GL_DEPTH_TEST);
+        }
         unUse();
+        glfwSetWindowUserPointer(m_windowHandle, this);
     }
 
     Window::Window(Window&& other)
@@ -109,17 +112,16 @@ namespace window
         , m_properties{ std::move(other.m_properties) }
         , m_keyMap{ std::move(other.m_keyMap) }
     {
+        glfwSetWindowUserPointer(m_windowHandle, this);
         other.m_id           = 0;
         other.m_windowHandle = nullptr;
         other.m_keyMap       = {};
-        other.m_isActive     = false;
     }
 
     Window::~Window()
     {
         if (m_windowHandle != nullptr && m_id != 0) {
             glfwSetWindowUserPointer(m_windowHandle, nullptr);    // remove user pointer
-            m_isActive = false;
             auto& windowManager{ WindowManager::getInstance()->get() };
             windowManager.requestDeleteWindow(m_id);
         } else {
@@ -133,7 +135,7 @@ namespace window
         std::cout << std::format("window {} ({:#x}) attached to thread {:#x}\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
 
         glfwMakeContextCurrent(m_windowHandle);
-        glfwSetWindowUserPointer(m_windowHandle, this);
+        // glfwSetWindowUserPointer(m_windowHandle, this);
     }
 
     void Window::unUse()
@@ -183,16 +185,10 @@ namespace window
         }
     }
 
-    bool Window::enqueueTask(std::function<void()>&& func)
+    void Window::enqueueTask(std::function<void()>&& func)
     {
         std::lock_guard lock{ m_queueMutex };
-
-        // enqueu only when the window is active
-        if (m_isActive) {
-            m_taskQueue.push(std::move(func));
-            return true;
-        }
-        return false;
+        m_taskQueue.push(std::move(func));
     }
 
     void Window::requestClose()
