@@ -121,19 +121,30 @@ private:
         gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR_MIPMAP_NEAREST);
         gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
 
-        gl::GLenum format;
-        if (imageData.m_nrChannels == 3) {
-            format = gl::GL_RGB;
-        } else if (imageData.m_nrChannels == 4) {
-            format = gl::GL_RGBA;
+        if (imageData.m_nrChannels == 4) {
+            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, imageData.m_data);
         } else {
-            std::cerr << "Image number of channels is not supported: " << imageData.m_nrChannels << '\n';
-            format = gl::GL_RGB;    // fallback
+            // pad data if not rgba
+            auto newData{ padData(imageData) };
+            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, &newData.front());
         }
-        gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, format, imageData.m_width, imageData.m_height, 0, format, gl::GL_UNSIGNED_BYTE, imageData.m_data);
         gl::glGenerateMipmap(gl::GL_TEXTURE_2D);
 
         gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
+    }
+
+    std::vector<std::array<unsigned char, 4>> padData(const ImageData& data)
+    {
+        std::vector<std::array<unsigned char, 4>> newData(std::size_t(data.m_width * data.m_height));    // default initialize
+        for (std::size_t i{ 0 }; i < newData.size(); ++i) {
+            auto& byte{ newData[i] };
+            for (int channel{ 0 }; channel < data.m_nrChannels; ++channel) {
+                auto idx{ i * (std::size_t)data.m_nrChannels + (std::size_t)channel };
+                byte[(std::size_t)channel] = data.m_data[idx];
+            }
+            byte[3] = 0xff;    // set alpha to max value
+        }
+        return newData;
     }
 };
 
