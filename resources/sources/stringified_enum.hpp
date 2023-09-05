@@ -20,8 +20,8 @@ template <typename T, typename... U>
 concept VarargsNonEmpty = (sizeof...(U) > 0) && (std::same_as<T, U> && ...);
 
 // clang-format off
-#define _STRINGIFIED_ENUM_FIELD_EXPANDER(Name) Name = 1 << (__COUNTER__ - _counter_start_ - 1)
-#define _STRINGIFIED_ENUM_MAP_EXPANDER(Name)   { (Base_type)Name, #Name }
+#define _STRINGIFIED_ENUM_FIELD_EXPANDER(Name) Name = 1 << (__COUNTER__ - _counter_start_ - 1),
+#define _STRINGIFIED_ENUM_MAP_EXPANDER(Name)   { (Base_type)Name, #Name },
 // clang-format on
 
 /*
@@ -57,12 +57,13 @@ concept VarargsNonEmpty = (sizeof...(U) > 0) && (std::same_as<T, U> && ...);
         enum Enum : Base_type                                                                            \
         {                                                                                                \
             NONE = 0,                                                                                    \
-            FIELDS(_STRINGIFIED_ENUM_FIELD_EXPANDER),                                                    \
-            ALL = (1 << (__COUNTER__ - _counter_start_ - 1)) - 1                                         \
+            FIELDS(_STRINGIFIED_ENUM_FIELD_EXPANDER)                                                     \
+                ALL                                                                                      \
+            = (1 << (__COUNTER__ - _counter_start_ - 1)) - 1                                             \
         };                                                                                               \
                                                                                                          \
         static inline const std::map<Base_type, std::string> s_enums{                                    \
-            FIELDS(_STRINGIFIED_ENUM_MAP_EXPANDER),                                                      \
+            FIELDS(_STRINGIFIED_ENUM_MAP_EXPANDER)                                                       \
         };                                                                                               \
                                                                                                          \
         static std::optional<Enum> fromString(const std::string& s)                                      \

@@ -25,8 +25,8 @@
 #include "texture.hpp"
 #include "stringified_enum.hpp"
 
-#define _UNIFORM_FIELD_EXPANDER(type, name) type name
-#define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name)
+#define _UNIFORM_FIELD_EXPANDER(type, name) type name;
+#define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
 #define UNIFORM_STRUCT_CREATE(FIELDS)        \
     std::string m_name;                      \
                                              \
@@ -78,11 +78,11 @@ struct Material
 
 struct DirectionalLight
 {
-#define FIELDS(M)              \
-    M(glm::vec3, m_direction); \
-    M(glm::vec3, m_ambient);   \
-    M(glm::vec3, m_diffuse);   \
-    M(glm::vec3, m_specular);
+#define FIELDS(M)             \
+    M(glm::vec3, m_direction) \
+    M(glm::vec3, m_ambient)   \
+    M(glm::vec3, m_diffuse)   \
+    M(glm::vec3, m_specular)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
 #undef FIELDS
@@ -90,14 +90,14 @@ struct DirectionalLight
 
 struct PointLight
 {
-#define FIELDS(M)             \
-    M(glm::vec3, m_position); \
-    M(glm::vec3, m_ambient);  \
-    M(glm::vec3, m_diffuse);  \
-    M(glm::vec3, m_specular); \
-    M(float, m_constant);     \
-    M(float, m_linear);       \
-    M(float, m_quadratic);
+#define FIELDS(M)            \
+    M(glm::vec3, m_position) \
+    M(glm::vec3, m_ambient)  \
+    M(glm::vec3, m_diffuse)  \
+    M(glm::vec3, m_specular) \
+    M(float, m_constant)     \
+    M(float, m_linear)       \
+    M(float, m_quadratic)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
 #undef FIELDS
@@ -105,25 +105,26 @@ struct PointLight
 
 struct SpotLight
 {
-#define FIELDS(M)                                                   \
-    M(glm::vec3&, m_position);  /* reference to camera position */  \
-    M(glm::vec3&, m_direction); /* reference to camera direction */ \
-    M(glm::vec3, m_ambient);                                        \
-    M(glm::vec3, m_diffuse);                                        \
-    M(glm::vec3, m_specular);                                       \
-    M(float, m_cutOff);                                             \
-    M(float, m_outerCutOff);                                        \
-    M(float, m_constant);                                           \
-    M(float, m_linear);                                             \
-    M(float, m_quadratic);
+#define FIELDS(M)                                                  \
+    M(glm::vec3&, m_position)  /* reference to camera position */  \
+    M(glm::vec3&, m_direction) /* reference to camera direction */ \
+    M(glm::vec3, m_ambient)                                        \
+    M(glm::vec3, m_diffuse)                                        \
+    M(glm::vec3, m_specular)                                       \
+    M(float, m_cutOff)                                             \
+    M(float, m_outerCutOff)                                        \
+    M(float, m_constant)                                           \
+    M(float, m_linear)                                             \
+    M(float, m_quadratic)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
 #undef FIELDS
 };
 
-#define ENUM_FIELDS(M) M(DIRECTIONAL), \
-                       M(POINT),       \
-                       M(SPOT)
+#define ENUM_FIELDS(M) \
+    M(DIRECTIONAL)     \
+    M(POINT)           \
+    M(SPOT)
 using LightsUsed = STRINGIFIED_ENUM_FLAG(LightsUsed, char, ENUM_FIELDS);
 #undef ENUM_FIELDS
 
