@@ -11,9 +11,10 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 - GCC 13 (or other compiler with C++20 support)
 - CMake (3.10+)
 - [GLFW](https://github.com/glfw/glfw)
-- [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
 - [stb](https://github.com/nothings/stb) (stb_image specifically)
 - [GLM](https://github.com/g-truc/glm)
+- [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
+- [ImGui](https://github.com/ocornut/imgui) (included in repository as submodule)
 
 ### Linux
 
