@@ -191,14 +191,14 @@ namespace window
             gl::glViewport(0, 0, prop.m_width, prop.m_height);
             gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
+            processInput();
+            processQueuedTasks();
+
             func();
 
             glfwSwapBuffers(m_windowHandle);
 
             updateDeltaTime();
-
-            processInput();
-            processQueuedTasks();
         }
     }
 
@@ -271,6 +271,7 @@ namespace window
 
             return mods;
         };
+        auto mods{ getMods() };
 
         // continuous key input
         for (auto& [key, handler] : m_keyMap) {
@@ -278,7 +279,6 @@ namespace window
             if (haction != KeyActionType::CONTINUOUS) { continue; }
             if (glfwGetKey(m_windowHandle, key) != GLFW_PRESS) { continue; }
 
-            auto mods{ getMods() };
             if (mods & hmod || hmod == 0) {    // modifier match or don't have any modifier
                 hfun(*this);
             }
