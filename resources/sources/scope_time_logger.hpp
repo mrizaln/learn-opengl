@@ -129,6 +129,17 @@ namespace util
             return Inserter(name, threadId);
         }
 
+        static void insert(const std::string& key, TimeData&& data)
+        {
+            if (s_instance.get() == nullptr) {
+                return;
+            }
+
+            std::lock_guard lock{ s_instance->m_mutex };
+
+            s_instance->m_runTimeDatas[key] = data;
+        }
+
         static void print(bool clearAfter, bool printInline = false)
         {
             if (s_instance.get() == nullptr) {
@@ -192,17 +203,6 @@ namespace util
 
     private:
         ScopeTimeLogger() = default;
-
-        static void insert(const std::string& key, TimeData&& data)
-        {
-            if (s_instance.get() == nullptr) {
-                return;
-            }
-
-            std::lock_guard lock{ s_instance->m_mutex };
-
-            s_instance->m_runTimeDatas[key] = data;
-        }
     };
 }
 
@@ -217,11 +217,15 @@ namespace util
 
 // pretty function
 #ifdef __GNUC__
-#define PRETTY_FUNCTION_TIME_LOG() \
-    SCOPE_TIME_LOG(__PRETTY_FUNCTION__)
+#    define PRETTY_FUNCTION_TIME_LOG() \
+        SCOPE_TIME_LOG(__PRETTY_FUNCTION__)
+#    define PRETTY_FUNCTION_TIME_LOG_WITH_ARG(str) \
+        SCOPE_TIME_LOG(std::format("{} | {}", __PRETTY_FUNCTION__, str))
 #else
-#define PRETTY_FUNCTION_TIME_LOG() \
-    SCOPE_TIME_LOG(__func__)
+#    define PRETTY_FUNCTION_TIME_LOG() \
+        SCOPE_TIME_LOG(__func__)
+#    define PRETTY_FUNCTION_TIME_LOG_WITH_ARG(str) \
+        SCOPE_TIME_LOG(std::format("{} | {}", __func__, str))
 #endif
 
 #endif /* end of include guard: SCOPE_TIME_LOGGER_HPP_TORJQ8M2 */
