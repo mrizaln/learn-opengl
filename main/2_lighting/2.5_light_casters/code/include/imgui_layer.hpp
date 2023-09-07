@@ -16,7 +16,6 @@ struct GlslVersion
     int minor;
 };
 
-// TODO: add functions that modify Scene
 class ImGuiLayer
 {
 private:
@@ -84,6 +83,7 @@ private:
 private:
     window::Window&   m_window;
     Scene&            m_scene;
+    ImGuiContext*     m_imguiContext;
     const GlslVersion m_glslVersion;
 
     ImGuiIO*           m_imguiIo;
@@ -107,8 +107,8 @@ public:
         , m_glslVersion{ glslVersion }
     {
         IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        m_imguiIo = &ImGui::GetIO();
+        m_imguiContext = ImGui::CreateContext();
+        m_imguiIo      = &ImGui::GetIO();
         // m_imguiIo->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;    // Enable Keyboard Controls
         // m_imguiIo->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;     // Enable Gamepad Controls
 
@@ -116,14 +116,20 @@ public:
         ImGui::StyleColorsDark();
 
         // Setup Platform/Renderer bindings
+        m_window.useHere();
         ImGui_ImplGlfw_InitForOpenGL(m_window.getHandle(), true);
         auto glslVersionString{ std::format("#version {}{}0 core", m_glslVersion.major, m_glslVersion.minor) };
         ImGui_ImplOpenGL3_Init(glslVersionString.c_str());
+        m_window.unUse();
 
         // setup actual window key mapping
-        m_window.addKeyEventHandler(GLFW_KEY_M, GLFW_MOD_ALT, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
-            m_windowShown.toggle(MyImGuiWindowShown::SHOW_MAIN_WINDOW);
-        });
+        m_window
+            .addKeyEventHandler(GLFW_KEY_M, GLFW_MOD_ALT, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
+                m_windowShown.toggle(MyImGuiWindowShown::SHOW_MAIN_WINDOW);
+            })
+            .addKeyEventHandler(GLFW_KEY_L, GLFW_MOD_ALT, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
+                m_windowShown.toggle(MyImGuiWindowShown::SHOW_SCOPE_TIMER_LOG_WINDOW);
+            });
     }
 
     ~ImGuiLayer()
@@ -140,6 +146,7 @@ public:
 
         using enum MyImGuiWindowShown::Enum;
 
+        // ImGui::SetCurrentContext(m_imguiContext);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -160,7 +167,7 @@ private:
 
         ImGui::Text("windows: ");
         for (const auto& [val, name] : MyImGuiWindowShown::s_enums) {
-            if (val == MyImGuiWindowShown::NONE) { continue; }
+            if (val == MyImGuiWindowShown::SHOW_MAIN_WINDOW) { continue; }
             ImGui::CheckboxFlags(name.c_str(), &m_windowShown.base(), val);
         }
         ImGui::Separator();
@@ -172,7 +179,6 @@ private:
         ImGui::Separator();
 
         for (auto& activatedLights{ m_scene.u_activatedLights.m_value }; const auto& [val, name] : activatedLights.s_enums) {
-            if (val == activatedLights.NONE) { continue; }
             ImGui::CheckboxFlags(name.c_str(), &activatedLights.base(), val);
         }
         ImGui::Separator();
