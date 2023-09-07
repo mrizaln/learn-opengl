@@ -16,9 +16,6 @@
 #include <utility>
 #include <vector>
 
-template <typename T, typename... U>
-concept VarargsNonEmpty = (sizeof...(U) > 0) && (std::same_as<T, U> && ...);
-
 // clang-format off
 #define _STRINGIFIED_ENUM_FIELD_EXPANDER(Name) Name = 1 << (__COUNTER__ - _counter_start_ - 1),
 #define _STRINGIFIED_ENUM_MAP_EXPANDER(Name)   { (Base_type)Name, #Name },
