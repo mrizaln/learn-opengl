@@ -13,6 +13,7 @@
 
 #include "window.hpp"
 #include "window_manager.hpp"
+#include "scope_time_logger.hpp"
 
 namespace util
 {
@@ -25,6 +26,38 @@ namespace util
 
         return threadId;
     }
+
+    class GpuTimeQueryHelper
+    {
+    private:
+        gl::GLuint   m_queryId{};
+        gl::GLuint64 m_timeElapsed{};
+
+    public:
+        GpuTimeQueryHelper()
+        {
+            gl::glGenQueries(1, &m_queryId);
+            gl::glBeginQuery(gl::GL_TIME_ELAPSED, m_queryId);
+        }
+
+        ~GpuTimeQueryHelper()
+        {
+            gl::glDeleteQueries(1, &m_queryId);
+        }
+
+        double getTimeElapsedMilli()
+        {
+            query();
+            return (double)m_timeElapsed / 1'000'000.0;    // ms
+        }
+
+    private:
+        void query()
+        {
+            gl::glEndQuery(gl::GL_TIME_ELAPSED);
+            gl::glGetQueryObjectui64v(m_queryId, gl::GL_QUERY_RESULT, &m_timeElapsed);
+        }
+    };
 }
 
 namespace window
@@ -152,7 +185,7 @@ namespace window
     {
         glfwMakeContextCurrent(nullptr);
         std::cout << std::format("window {} ({:#x}) detached from thread {:#x}\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
-        m_attachedThreadId = util::getThreadId();
+        m_attachedThreadId = 0;
     }
 
     Window& Window::setVsync(bool value)
@@ -187,18 +220,28 @@ namespace window
     void Window::run(std::function<void()>&& func)
     {
         for (std::lock_guard lock{ m_windowMutex }; !glfwWindowShouldClose(m_windowHandle);) {
-            auto& prop{ getProperties() };
-            gl::glViewport(0, 0, prop.m_width, prop.m_height);
-            gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+            PRETTY_FUNCTION_TIME_LOG();
 
+            updateDeltaTime();
             processInput();
             processQueuedTasks();
 
-            func();
+            {
+                // util::GpuTimeQueryHelper timer{};
 
-            glfwSwapBuffers(m_windowHandle);
+                auto& prop{ getProperties() };
+                gl::glViewport(0, 0, prop.m_width, prop.m_height);
+                gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
-            updateDeltaTime();
+                func();
+
+                glfwSwapBuffers(m_windowHandle);
+
+                // util::ScopeTimeLogger::insert(
+                //     std::format("{} | {}", __PRETTY_FUNCTION__, "gpu time"),
+                //     { .m_time = timer.getTimeElapsedMilli(), .m_threadId = m_attachedThreadId, .m_activity = true }
+                // );
+            }
         }
     }
 
@@ -258,6 +301,8 @@ namespace window
 
     void Window::processInput()
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         const auto getMods = [win = m_windowHandle] {
             int mods{ 0 };
             mods |= glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) & GLFW_MOD_SHIFT;
@@ -287,6 +332,8 @@ namespace window
 
     void Window::processQueuedTasks()
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         decltype(m_taskQueue) taskQueue;
         {
             std::lock_guard lock{ m_queueMutex };
