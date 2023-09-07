@@ -54,6 +54,11 @@ uniform PointLight       u_pointLight;
 uniform SpotLight        u_spotLight;
 uniform bool             u_enableEmissionMap;
 
+uniform uint u_enabledLightsFlag;    // an enum
+uint         LIGHT_DIRECTIONAL = 1u;
+uint         LIGHT_POINT       = 2u;
+uint         LIGHT_SPOT        = 4u;
+
 vec3 calculateDirectionalLight()
 {
     vec3 normal     = normalize(io_normal);
@@ -130,9 +135,14 @@ vec3 calculateSpotLight()
 
 void main()
 {
-    vec3 color = calculateDirectionalLight() + calculatePointLight() + calculateSpotLight();
-    // vec3 color = calculateDirectionalLight();
-    // vec3 color  = calculatePointLight();
-    // vec3 color  = calculateSpotLight();
+    vec3 color = vec3(0.0);
+
+#define LIGHT_ENABLE_TEST(Enum, Func) \
+    if ((u_enabledLightsFlag & Enum) > 0u) { color += Func(); }
+
+    LIGHT_ENABLE_TEST(LIGHT_DIRECTIONAL, calculateDirectionalLight);
+    LIGHT_ENABLE_TEST(LIGHT_POINT, calculatePointLight);
+    LIGHT_ENABLE_TEST(LIGHT_SPOT, calculateSpotLight);
+
     o_fragColor = vec4(color, 1.0);
 }
