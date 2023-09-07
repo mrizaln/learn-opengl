@@ -16,6 +16,7 @@
 #include "scope_time_logger.hpp"
 
 #include "scene.hpp"
+#include "imgui_layer.hpp"
 
 static constexpr int         DEFAULT_WINDOW_WIDTH  = 800;
 static constexpr int         DEFAULT_WINDOW_HEIGHT = 600;
@@ -29,8 +30,10 @@ private:
     window::Window m_window;
     std::jthread   m_windowThread;
     Scene          m_scene;
+    ImGuiLayer     m_imgui;
 
     std::atomic<bool> m_running{ false };
+    bool              m_imguiEnabled{ false };
 
 public:
     static void init() noexcept(false)
@@ -83,9 +86,7 @@ public:
     }
 
 public:
-    ~App()
-    {
-    }
+    ~App() = default;
 
 private:
     App()                      = delete;
@@ -97,8 +98,14 @@ private:
     App(window::Window&& win)
         : m_window{ std::move(win) }
         , m_scene{ m_window }
+        , m_imgui{ m_window, m_scene }
     {
         m_scene.readDeviceInformation();
+
+        // something like debug tools in minecraft
+        m_window.addKeyEventHandler(GLFW_KEY_F3, 0, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
+            m_imguiEnabled = !m_imguiEnabled;
+        });
     }
 
 private:
@@ -116,6 +123,7 @@ private:
                     SCOPE_TIME_LOG("Window::run lambda (window1)");
 
                     m_scene.render();
+                    if (m_imguiEnabled) { m_imgui.render(); }
                 });
 
                 m_running = false;
