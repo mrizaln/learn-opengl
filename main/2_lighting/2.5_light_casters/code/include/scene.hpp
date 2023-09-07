@@ -121,16 +121,20 @@ struct SpotLight
 #undef FIELDS
 };
 
-#define ENUM_FIELDS(M) \
-    M(DIRECTIONAL)     \
-    M(POINT)           \
-    M(SPOT)
-using LightsUsed = STRINGIFIED_ENUM_FLAG(LightsUsed, char, ENUM_FIELDS);
+#define ENUM_FIELDS(M)   \
+    M(LIGHT_DIRECTIONAL) \
+    M(LIGHT_POINT)       \
+    M(LIGHT_SPOT)
+using LightsUsed = STRINGIFIED_ENUM_FLAG(LightsUsed, unsigned int, ENUM_FIELDS);
 #undef ENUM_FIELDS
+
+class ImGuiLayer;
 
 class Scene
 {
 private:
+    friend ImGuiLayer;
+
     // clang-format off
     static inline constexpr std::array<glm::vec3, 10> s_cubePositions{ {
         {  0.0f,  0.0f,  0.0f },
@@ -156,10 +160,10 @@ private:
     DirectionalLight m_directionalLight;
     PointLight       m_pointLight;
     SpotLight        m_spotLight;
-    LightsUsed       m_activatedLights{ LightsUsed::ALL };
+
+    UniformData<LightsUsed> u_activatedLights{ "u_enabledLightsFlag", LightsUsed::ALL };
 
     // options
-    bool m_vsync{ true };
     bool m_drawWireFrame{ false };
     bool m_invertRender{ false };
     bool m_rotate{ false };
@@ -249,6 +253,7 @@ public:
         m_directionalLight.applyUniforms(m_shader);
         m_pointLight.applyUniforms(m_shader);
         m_spotLight.applyUniforms(m_shader);
+        m_shader.setUniform(u_activatedLights.m_name, u_activatedLights.m_value.base());
     }
 
     void render()
@@ -262,6 +267,7 @@ public:
         m_directionalLight.applyUniforms(m_shader);
         m_pointLight.applyUniforms(m_shader);
         m_spotLight.applyUniforms(m_shader);
+        m_shader.setUniform(u_activatedLights.m_name, u_activatedLights.m_value.base());
 
         //----------------[ light cube object ]-----------------
         m_lightShader.use();
@@ -318,11 +324,7 @@ private:
             })
             // vsync
             .addKeyEventHandler(GLFW_KEY_V, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                if ((m_vsync = !m_vsync)) {
-                    glfwSwapInterval(1);
-                } else {
-                    glfwSwapInterval(0);
-                }
+                m_window.setVsync(!m_window.isVsyncEnabled());
             })
             // invert render
             .addKeyEventHandler(GLFW_KEY_Z, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
