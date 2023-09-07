@@ -33,7 +33,7 @@ private:
     ImGuiLayer     m_imgui;
 
     std::atomic<bool> m_running{ false };
-    bool              m_imguiEnabled{ false };
+    bool              m_imguiEnabled{ true };
 
 public:
     static void init() noexcept(false)
@@ -56,10 +56,13 @@ public:
 
         auto& windowManager{ window::WindowManager::getInstance()->get() };
 
-        auto window{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT).value() };    // ignore possible nullopt :>
+        auto window{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT) };
+        if (!window.has_value()) {
+            throw std::runtime_error{ "Failed to create Window instance" };
+        }
 
-        window.useHere();
-        s_instance.reset(new App{ std::move(window) });
+        window->useHere();
+        s_instance.reset(new App{ std::move(window.value()) });
     }
 
     static void run() noexcept(false)
@@ -120,8 +123,6 @@ private:
 
                 m_scene.init();
                 m_window.run([this] {
-                    SCOPE_TIME_LOG("Window::run lambda (window1)");
-
                     m_scene.render();
                     if (m_imguiEnabled) { m_imgui.render(); }
                 });
@@ -132,6 +133,8 @@ private:
 
         auto& windowManager{ window::WindowManager::getInstance()->get() };
         while (windowManager.hasWindowOpened() && m_running) {
+            PRETTY_FUNCTION_TIME_LOG_WITH_ARG("pollEvents");
+
             using window::operator""_fps;
             windowManager.pollEvents(120_fps);
         }
