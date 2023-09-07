@@ -73,7 +73,7 @@ namespace window
         bool              isVsyncEnabled() { return m_vsync; }
         bool              isMouseCaptured() { return m_captureMouse; }
         WindowProperties& getProperties() { return m_properties; }
-        GLFWwindow*       getHandle() { return m_windowHandle; }
+        GLFWwindow*       getHandle() const { return m_windowHandle; }
 
     private:
         Window(std::size_t id, GLFWwindow* handle, WindowProperties&& prop);
