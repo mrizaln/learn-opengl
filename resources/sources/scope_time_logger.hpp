@@ -215,4 +215,13 @@ namespace util
 #define FUNCTION_TIME_LOG() \
     SCOPE_TIME_LOG(__func__)
 
+// pretty function
+#ifdef __GNUC__
+#define PRETTY_FUNCTION_TIME_LOG() \
+    SCOPE_TIME_LOG(__PRETTY_FUNCTION__)
+#else
+#define PRETTY_FUNCTION_TIME_LOG() \
+    SCOPE_TIME_LOG(__func__)
+#endif
+
 #endif /* end of include guard: SCOPE_TIME_LOGGER_HPP_TORJQ8M2 */
