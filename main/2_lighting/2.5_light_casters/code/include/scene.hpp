@@ -15,7 +15,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "glbinding/gl/gl.h"
+#include <glbinding/gl/gl.h>
 
 #include "window.hpp"
 #include "window_manager.hpp"
@@ -24,6 +24,7 @@
 #include "shader.hpp"
 #include "texture.hpp"
 #include "stringified_enum.hpp"
+#include "scope_time_logger.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
@@ -233,9 +234,12 @@ public:
 public:
     void readDeviceInformation()
     {
+        m_window.useHere();
+
         // device information
         auto vendor{ glGetString(gl::GL_VENDOR) };        // Returns the vendor
         auto renderer{ glGetString(gl::GL_RENDERER) };    // Returns a hint to the model
+        std::cout << '\n';
         std::cout << "Device: " << renderer << '\n';
         std::cout << "Vendor: " << vendor << '\n';
 
@@ -244,6 +248,8 @@ public:
         // std::cout << "Maximum number of vertex attributes supported: " << nrAttributes << '\n';
 
         std::cout << '\n';
+
+        m_window.unUse();
     }
 
     void init()
@@ -258,6 +264,8 @@ public:
 
     void render()
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         auto      view{ m_camera.getViewMatrix() };
         auto      projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };
         glm::mat4 model{ 1.0f };
