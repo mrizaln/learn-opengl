@@ -111,13 +111,13 @@ vec3 calculateSpotLight()
     vec3 lightDir   = normalize(u_spotLight.m_position - io_fragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
 
-    vec3 ambient = u_pointLight.m_ambient * texture(u_material.m_diffuse, io_texCoords).rgb;
+    vec3 ambient = u_spotLight.m_ambient * texture(u_material.m_diffuse, io_texCoords).rgb;
 
     float diffuseValue = max(dot(normal, lightDir), 0.0);    // clamp to non-negative
-    vec3  diffuse      = diffuseValue * u_pointLight.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
+    vec3  diffuse      = diffuseValue * u_spotLight.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
 
     float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);
-    vec3  specular      = specularValue * u_pointLight.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
+    vec3  specular      = specularValue * u_spotLight.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
 
     vec3 emission = texture(u_material.m_emission, io_texCoords).rgb * vec3(u_enableEmissionMap);
 
