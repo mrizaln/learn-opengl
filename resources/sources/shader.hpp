@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <map>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -36,7 +37,8 @@ private:
     };
 
 public:
-    const gl::GLuint m_id;
+    const gl::GLuint                 m_id;
+    std::map<std::string, gl::GLint> m_uniformLocHistory;    // last location of uniform
 
 public:
     Shader() = delete;
@@ -132,10 +134,7 @@ public:
     template <UniformValueType Type>
     void setUniform(const std::string& name, Type value)
     {
-        gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
-        if (loc == -1) {
-            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
-        }
+        gl::GLint loc{ getLoc(name) };
 
         // clang-format off
         if      constexpr (std::same_as<Type, gl::GLfloat>)  gl::glUniform1f(loc, value);
@@ -171,6 +170,20 @@ public:
     }
 
 private:
+    gl::GLint getLoc(const std::string& name)
+    {
+        if (auto found{ m_uniformLocHistory.find(name) }; found != m_uniformLocHistory.end()) {
+            return found->second;
+        } else {
+            gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
+            if (loc == -1) {
+                std::cerr << std::format("WARNING: [Shader] [{}]: Uniform of name '{}' can't be found\n", m_id, name);
+            }
+            m_uniformLocHistory.emplace(name, loc);
+            return loc;
+        }
+    }
+
     void shaderCompileInfo(gl::GLuint shader, ShaderStage stage)
     {
         std::string_view name;
@@ -235,10 +248,7 @@ private:
         requires(N >= 2 && N <= 4)
     void setUniform_vec_impl(const std::string& name, const Type* value)
     {
-        gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
-        if (loc == -1) {
-            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
-        }
+        gl::GLint loc{ getLoc(name) };
 
         // another C limitation, the const does not matter
         auto val{ const_cast<Type*>(value) };
@@ -271,10 +281,7 @@ private:
         requires(N >= 2 && N <= 4)
     void setUniform_mat_impl(const std::string& name, const glm::mat<N, N, Type>& mat)
     {
-        gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
-        if (loc == -1) {
-            std::cerr << std::format("Shader [{}]: Uniform of name '{}' can't be found\n", m_id, name);
-        }
+        gl::GLint loc{ getLoc(name) };
         // clang-format off
         if      constexpr (std::same_as<Type, gl::GLfloat> && N == 2) gl::glUniformMatrix2fv(loc, 1, gl::GL_FALSE, &mat[0][0]);
         else if constexpr (std::same_as<Type, gl::GLfloat> && N == 3) gl::glUniformMatrix3fv(loc, 1, gl::GL_FALSE, &mat[0][0]);
