@@ -61,7 +61,6 @@ private:
                 std::cerr << std::format("Failed to load image at {}\n", imagePath.string());
                 return {};
             }
-            std::cout << std::format("Loaded image at {} with dimensions {}x{} and {} channels\n", imagePath.string(), width, height, nrChannels);
             return ImageData{ width, height, nrChannels, data };
         }
     };
@@ -85,6 +84,30 @@ public:
     }
 
 public:
+    Texture(Texture&& other) noexcept
+        : m_id{ other.m_id }
+        , m_unitNum{ other.m_unitNum }
+        , m_imagePath{ std::move(other.m_imagePath) }
+        , m_uniformName{ std::move(other.m_uniformName) }
+    {
+        other.m_id = 0;
+    }
+
+    Texture(const Texture& other)
+        : m_id{ other.m_id }
+        , m_unitNum{ other.m_unitNum }
+        , m_imagePath{ other.m_imagePath }
+        , m_uniformName{ other.m_uniformName }
+    {
+    }
+
+    ~Texture()
+    {
+        if (m_id != 0) {
+            gl::glDeleteTextures(1, &m_id);
+        }
+    }
+
     gl::GLuint getId() const
     {
         return m_id;
@@ -98,6 +121,16 @@ public:
     const std::string& getUniformName() const
     {
         return m_uniformName;
+    }
+
+    void setUniformName(const std::string& name)
+    {
+        m_uniformName = name;
+    }
+
+    const std::filesystem::path& getImagePath() const
+    {
+        return m_imagePath;
     }
 
     void activate(Shader& shader) const
@@ -123,8 +156,10 @@ private:
 
         if (imageData.m_nrChannels == 4) {
             gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, imageData.m_data);
+        } else if (imageData.m_nrChannels == 3) {
+            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGB, imageData.m_width, imageData.m_height, 0, gl::GL_RGB, gl::GL_UNSIGNED_BYTE, imageData.m_data);
         } else {
-            // pad data if not rgba
+            // pad data if not rgb or rgba
             auto newData{ padData(imageData) };
             gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, &newData.front());
         }
