@@ -220,7 +220,7 @@ namespace window
     void Window::run(std::function<void()>&& func)
     {
         for (std::lock_guard lock{ m_windowMutex }; !glfwWindowShouldClose(m_windowHandle);) {
-            PRETTY_FUNCTION_TIME_LOG();
+            PRETTY_FUNCTION_TIME_LOG_WITH_ARG("loop");
 
             updateDeltaTime();
             processInput();
