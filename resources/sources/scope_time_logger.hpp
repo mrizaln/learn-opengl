@@ -58,6 +58,7 @@ namespace util
          */
         class Inserter
         {
+        private:
             friend ScopeTimeLogger;
 
             using clock_type  = std::chrono::steady_clock;
@@ -68,6 +69,7 @@ namespace util
             const std::size_t                         m_threadId;
             bool                                      m_hasLogged;
 
+        private:
             Inserter(const Container_type::key_type& key, std::size_t threadId)
                 : m_beginning{ clock_type::now() }
                 , m_key{ key }
