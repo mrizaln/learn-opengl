@@ -17,8 +17,8 @@
 #include <vector>
 
 // clang-format off
-#define _STRINGIFIED_ENUM_FIELD_EXPANDER(Name) Name = 1 << (__COUNTER__ - _counter_start_ - 1),
-#define _STRINGIFIED_ENUM_MAP_EXPANDER(Name)   { (Base_type)Name, #Name },
+#define _STRINGIFIED_ENUM_FLAG_FIELD_EXPANDER(Name) Name = 1 << (__COUNTER__ - _counter_start_ - 1),
+#define _STRINGIFIED_ENUM_FLAG_MAP_EXPANDER(Name)   { (Base_type)Name, #Name },
 // clang-format on
 
 /*
@@ -54,13 +54,13 @@
         enum Enum : Base_type                                                                            \
         {                                                                                                \
             NONE = 0,                                                                                    \
-            FIELDS(_STRINGIFIED_ENUM_FIELD_EXPANDER)                                                     \
+            FIELDS(_STRINGIFIED_ENUM_FLAG_FIELD_EXPANDER)                                                \
                 ALL                                                                                      \
             = (1 << (__COUNTER__ - _counter_start_ - 1)) - 1                                             \
         };                                                                                               \
                                                                                                          \
         static inline const std::map<Base_type, std::string> s_enums{                                    \
-            FIELDS(_STRINGIFIED_ENUM_MAP_EXPANDER)                                                       \
+            FIELDS(_STRINGIFIED_ENUM_FLAG_MAP_EXPANDER)                                                  \
         };                                                                                               \
                                                                                                          \
         static std::optional<Enum> fromString(const std::string& s)                                      \
@@ -207,6 +207,35 @@
                                                                                                          \
         bool                 operator==(const Name& other) { return m_flags == other.m_flags; }          \
         friend std::ostream& operator<<(std::ostream& out, const Name& e) { return out << e.str(true); } \
+    }
+
+// just simply enum that has string representation, not used as flags.
+#define _STRINGIFIED_ENUM_FIELD_EXPANDER(Name, String) Name,
+#define _STRINGIFIED_ENUM_MAP_EXPANDER(Name, String)   { Name, String },
+#define STRINGIFIED_ENUM(Name, Base_type, Fields)                    \
+    class Name                                                       \
+    {                                                                \
+    public:                                                          \
+        enum Enum : Base_type                                        \
+        {                                                            \
+            Fields(_STRINGIFIED_ENUM_FIELD_EXPANDER)                 \
+        };                                                           \
+                                                                     \
+        static inline const std::map<Enum, std::string> s_map{       \
+            Fields(_STRINGIFIED_ENUM_MAP_EXPANDER)                   \
+        };                                                           \
+                                                                     \
+    private:                                                         \
+        Enum m_value;                                                \
+                                                                     \
+    public:                                                          \
+        Name(Enum value) : m_value{ value } { }                      \
+                                                                     \
+        operator Enum() const { return m_value; }                    \
+                                                                     \
+        const std::string& str() const { return s_map.at(m_value); } \
+                                                                     \
+        Enum value() const { return m_value; }                       \
     }
 
 #endif /* end of include guard: STRINGIFIED_ENUM_AS_FLAGS_IMPROVED_CPP_HY6RR7F8 */
