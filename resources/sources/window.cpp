@@ -264,12 +264,16 @@ namespace window
 
     Window& Window::setCaptureMouse(bool value)
     {
-        if ((m_captureMouse = value)) {
-            glfwGetCursorPos(m_windowHandle, &m_properties.m_cursorPos.x, &m_properties.m_cursorPos.y);    // prevent sudden jump when cursor first captured
-            glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        } else {
-            glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
+        m_captureMouse = value;
+        auto& windowManager{ WindowManager::getInstance()->get() };
+        windowManager.enqueueTask([this] {
+            if (m_captureMouse) {
+                glfwGetCursorPos(m_windowHandle, &m_properties.m_cursorPos.x, &m_properties.m_cursorPos.y);    // prevent sudden jump when cursor first captured
+                glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            } else {
+                glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            }
+        });
         return *this;
     }
 
@@ -303,6 +307,7 @@ namespace window
     {
         PRETTY_FUNCTION_TIME_LOG();
 
+        // TODO: move this part to 'main thread' (glfwGetKey must be called from main thread [for now it's okay, idk why tho])
         const auto getMods = [win = m_windowHandle] {
             int mods{ 0 };
             mods |= glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) & GLFW_MOD_SHIFT;
