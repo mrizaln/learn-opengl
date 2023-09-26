@@ -77,5 +77,5 @@ There are a total of two function we can use to configure stencil testing:
 
 ## Object outlining
 
-![outline_up](../../../resources/screenshots/4.02_4.02_stencil_testing_up.jpg)
-![outline_down](../../../resources/screenshots/4.02_4.02_stencil_testing_down.jpg)
+![outline_up](../../../resources/screenshots/4.02_stencil_testing_up.jpg)
+![outline_down](../../../resources/screenshots/4.02_stencil_testing_down.jpg)
