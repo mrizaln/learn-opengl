@@ -1,0 +1,1 @@
+../../../../../resources/sources/window_manager.hpp
