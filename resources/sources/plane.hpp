@@ -28,12 +28,12 @@ private:
     // clang-format off
     inline static constexpr std::array<Triple, NUM_OF_VERTICES> s_planeVertices{ {
         {  1.0f, 0.0f,  1.0f },
-        { -1.0f, 0.0f,  1.0f },
         { -1.0f, 0.0f, -1.0f },
+        { -1.0f, 0.0f,  1.0f },
 
         {  1.0f, 0.0f,  1.0f },
-        { -1.0f, 0.0f, -1.0f },
         {  1.0f, 0.0f, -1.0f },
+        { -1.0f, 0.0f, -1.0f },
     } };
     // clang-format on
 
@@ -52,12 +52,12 @@ private:
     // clang-format off
     inline static constexpr std::array<Pair, NUM_OF_VERTICES> s_planeTexCoords{ {
         { 1.0f, 1.0f },
-        { 0.0f, 1.0f },
         { 0.0f, 0.0f },
+        { 0.0f, 1.0f },
 
         { 1.0f, 1.0f },
-        { 0.0f, 0.0f },
         { 1.0f, 0.0f },
+        { 0.0f, 0.0f },
     } };
     // clang-format on
 

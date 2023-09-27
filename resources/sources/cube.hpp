@@ -28,13 +28,15 @@ public:
 private:
     // clang-format off
     inline static constexpr std::array<Triple, NUM_OF_VERTICES> s_cubeVertices{ {
+        // back face
         { -1.0f, -1.0f, -1.0f },
+        {  1.0f,  1.0f, -1.0f },
         {  1.0f, -1.0f, -1.0f },
         {  1.0f,  1.0f, -1.0f },
-        {  1.0f,  1.0f, -1.0f },
-        { -1.0f,  1.0f, -1.0f },
         { -1.0f, -1.0f, -1.0f },
+        { -1.0f,  1.0f, -1.0f },
 
+        // front face
         { -1.0f, -1.0f,  1.0f },
         {  1.0f, -1.0f,  1.0f },
         {  1.0f,  1.0f,  1.0f },
@@ -42,6 +44,7 @@ private:
         { -1.0f,  1.0f,  1.0f },
         { -1.0f, -1.0f,  1.0f },
 
+        // left face
         { -1.0f,  1.0f,  1.0f },
         { -1.0f,  1.0f, -1.0f },
         { -1.0f, -1.0f, -1.0f },
@@ -49,13 +52,15 @@ private:
         { -1.0f, -1.0f,  1.0f },
         { -1.0f,  1.0f,  1.0f },
 
+        // right face
         {  1.0f,  1.0f,  1.0f },
+        {  1.0f, -1.0f, -1.0f },
         {  1.0f,  1.0f, -1.0f },
         {  1.0f, -1.0f, -1.0f },
-        {  1.0f, -1.0f, -1.0f },
-        {  1.0f, -1.0f,  1.0f },
         {  1.0f,  1.0f,  1.0f },
+        {  1.0f, -1.0f,  1.0f },
 
+        // bottom face
         { -1.0f, -1.0f, -1.0f },
         {  1.0f, -1.0f, -1.0f },
         {  1.0f, -1.0f,  1.0f },
@@ -63,12 +68,13 @@ private:
         { -1.0f, -1.0f,  1.0f },
         { -1.0f, -1.0f, -1.0f },
 
+        // top face
         { -1.0f,  1.0f, -1.0f },
+        {  1.0f,  1.0f,  1.0f },
         {  1.0f,  1.0f, -1.0f },
         {  1.0f,  1.0f,  1.0f },
-        {  1.0f,  1.0f,  1.0f },
-        { -1.0f,  1.0f,  1.0f },
         { -1.0f,  1.0f, -1.0f },
+        { -1.0f,  1.0f,  1.0f },
     } };
     // clang-format on
 
@@ -120,6 +126,15 @@ private:
 
     // clang-format off
     inline static constexpr std::array<Pair, NUM_OF_VERTICES> s_cubeTexCoords{ {
+        // back face
+        { 0.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 1.0f, 0.0f },
+        { 1.0f, 1.0f },
+        { 0.0f, 0.0f },
+        { 0.0f, 1.0f },
+
+        // front face
         { 0.0f, 0.0f },
         { 1.0f, 0.0f },
         { 1.0f, 1.0f },
@@ -127,13 +142,7 @@ private:
         { 0.0f, 1.0f },
         { 0.0f, 0.0f },
 
-        { 0.0f, 0.0f },
-        { 1.0f, 0.0f },
-        { 1.0f, 1.0f },
-        { 1.0f, 1.0f },
-        { 0.0f, 1.0f },
-        { 0.0f, 0.0f },
-
+        // left face
         { 1.0f, 0.0f },
         { 1.0f, 1.0f },
         { 0.0f, 1.0f },
@@ -141,13 +150,15 @@ private:
         { 0.0f, 0.0f },
         { 1.0f, 0.0f },
 
+        // right face
         { 1.0f, 0.0f },
+        { 0.0f, 1.0f },
         { 1.0f, 1.0f },
         { 0.0f, 1.0f },
-        { 0.0f, 1.0f },
-        { 0.0f, 0.0f },
         { 1.0f, 0.0f },
+        { 0.0f, 0.0f },
 
+        // bottom face
         { 0.0f, 1.0f },
         { 1.0f, 1.0f },
         { 1.0f, 0.0f },
@@ -155,12 +166,13 @@ private:
         { 0.0f, 0.0f },
         { 0.0f, 1.0f },
 
+        // top face
         { 0.0f, 1.0f },
+        { 1.0f, 0.0f },
         { 1.0f, 1.0f },
         { 1.0f, 0.0f },
-        { 1.0f, 0.0f },
-        { 0.0f, 0.0f },
-        { 0.0f, 1.0f }
+        { 0.0f, 1.0f },
+        { 0.0f, 0.0f }
     } };
     // clang-format on
 
@@ -176,7 +188,7 @@ public:
         , m_vertices(NUM_OF_VERTICES)    // default initialize NUM_OF_VERTICES elements
     {
         for (std::size_t i = 0; i < NUM_OF_VERTICES; ++i) {
-            m_vertices[i].m_position = s_cubeVertices[i] * m_sideLength / 2.0f;    // divide by 2.0f since the s_cubeVertices side length is 2.0f
+            m_vertices[i].m_position = s_cubeVertices[i] * m_sideLength / 2.0f;
             m_vertices[i].m_normal   = s_cubeNormals[i];
             m_vertices[i].m_texCoord = s_cubeTexCoords[i];
         }
