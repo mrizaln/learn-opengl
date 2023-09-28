@@ -227,7 +227,6 @@ public:
             .m_quadratic   = 0.032f,
         }
     {
-        m_window.setClearColor(0.1f, 0.1f, 0.2f);
         setWindowEventsHandler();
     }
 
@@ -254,6 +253,9 @@ public:
 
     void init()
     {
+        gl::glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
+        gl::glEnable(gl::GL_DEPTH_TEST);
+
         m_shader.use();
         m_material.applyUniform(m_shader);
         m_directionalLight.applyUniforms(m_shader);
@@ -265,6 +267,11 @@ public:
     void render()
     {
         PRETTY_FUNCTION_TIME_LOG();
+
+        // clear buffers and update viewport
+        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+        const auto& winProp{ m_window.getProperties() };
+        gl::glViewport(0, 0, winProp.m_width, winProp.m_height);
 
         auto      view{ m_camera.getViewMatrix() };
         auto      projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };

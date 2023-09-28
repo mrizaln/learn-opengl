@@ -1,6 +1,7 @@
-#include "app.hpp"
 #include <exception>
 #include <iostream>
+
+#include "app.hpp"
 
 int main()
 {

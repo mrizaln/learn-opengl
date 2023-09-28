@@ -26,38 +26,6 @@ namespace util
 
         return threadId;
     }
-
-    class GpuTimeQueryHelper
-    {
-    private:
-        gl::GLuint   m_queryId{};
-        gl::GLuint64 m_timeElapsed{};
-
-    public:
-        GpuTimeQueryHelper()
-        {
-            gl::glGenQueries(1, &m_queryId);
-            gl::glBeginQuery(gl::GL_TIME_ELAPSED, m_queryId);
-        }
-
-        ~GpuTimeQueryHelper()
-        {
-            gl::glDeleteQueries(1, &m_queryId);
-        }
-
-        double getTimeElapsedMilli()
-        {
-            query();
-            return (double)m_timeElapsed / 1'000'000.0;    // ms
-        }
-
-    private:
-        void query()
-        {
-            gl::glEndQuery(gl::GL_TIME_ELAPSED);
-            gl::glGetQueryObjectui64v(m_queryId, gl::GL_QUERY_RESULT, &m_timeElapsed);
-        }
-    };
 }
 
 namespace window
@@ -132,8 +100,6 @@ namespace window
             glfwSetKeyCallback(m_windowHandle, Window::keyCallback);
             glfwSetCursorPosCallback(m_windowHandle, Window::cursorPosCallback);
             glfwSetScrollCallback(m_windowHandle, Window::scrollCallback);
-
-            gl::glEnable(gl::GL_DEPTH_TEST);
         }
         setVsync(m_vsync);
         glfwSetWindowUserPointer(m_windowHandle, this);
@@ -195,13 +161,6 @@ namespace window
         return *this;
     }
 
-    Window& Window::setClearColor(float r, float g, float b)
-    {
-        m_properties.m_clearColor = { r, g, b };
-        gl::glClearColor(r, g, b, 1.0f);
-        return *this;
-    }
-
     void Window::setWindowSize(int width, int height)
     {
         m_properties.m_width  = width;
@@ -228,10 +187,6 @@ namespace window
 
             {
                 // util::GpuTimeQueryHelper timer{};
-
-                auto& prop{ getProperties() };
-                gl::glViewport(0, 0, prop.m_width, prop.m_height);
-                gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
 
                 func();
 

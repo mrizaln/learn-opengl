@@ -19,7 +19,6 @@ namespace window
         std::string         m_title;
         int                 m_width;
         int                 m_height;
-        glm::vec3           m_clearColor;
         glm::vec<2, double> m_cursorPos;
     };
 
@@ -61,7 +60,6 @@ namespace window
         void    requestClose();
         double  getDeltaTime();
         Window& setVsync(bool value);
-        Window& setClearColor(float r, float g, float b);
         Window& setCaptureMouse(bool value);
         Window& setCursorPosCallback(CursorPosCallbackFun&& func);
         Window& setScrollCallback(ScrollCallbackFun&& func);

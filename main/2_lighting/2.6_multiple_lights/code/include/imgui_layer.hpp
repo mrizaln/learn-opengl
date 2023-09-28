@@ -188,10 +188,9 @@ private:
         ImGui::Separator();
 
         if (ImGui::TreeNode("colors")) {
-            auto clearColor{ m_window.getProperties().m_clearColor };
+            auto& clearColor{ m_scene.m_backgroundColor };
             ImGui::Text("clear color:");
             ImGui::ColorEdit3("##clear", &clearColor.r);
-            m_window.setClearColor(clearColor.r, clearColor.g, clearColor.b);
 
             ImGui::Separator();
 

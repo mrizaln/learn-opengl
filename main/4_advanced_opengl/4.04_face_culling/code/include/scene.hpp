@@ -175,7 +175,9 @@ private:
     // clang-format on
 
 private:
-    window::Window&                          m_window;
+    window::Window& m_window;
+    glm::vec3       m_backgroundColor;
+
     Camera                                   m_camera;
     Shader                                   m_shader;
     Shader                                   m_lightShader;
@@ -216,6 +218,7 @@ public:
 
     Scene(window::Window& window)
         : m_window{ window }
+        , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_shader{
             "./assets/shader/shader.vert",
@@ -296,7 +299,6 @@ public:
             };
         }
 
-        m_window.setClearColor(0.1f, 0.1f, 0.2f);
         setWindowEventsHandler();
     }
 
@@ -335,6 +337,9 @@ public:
         m_shader.setUniform(u_enableDepthOutput.m_name, u_enableDepthOutput.m_value);
         m_shader.setUniform(u_invertDepthOutput.m_name, u_invertDepthOutput.m_value);
 
+        // depth
+        gl::glEnable(gl::GL_DEPTH_TEST);
+
         // stencil
         gl::glEnable(gl::GL_STENCIL_TEST);
         gl::glClearStencil(0x01);
@@ -361,9 +366,14 @@ public:
     {
         PRETTY_FUNCTION_TIME_LOG();
 
+        // clear buffers and update viewport
+        gl::glClearColor(m_backgroundColor.r, m_backgroundColor.g, m_backgroundColor.b, 1.0f);
         gl::glStencilMask(0xff);
-        gl::glClear(gl::GL_STENCIL_BUFFER_BIT);
+        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT | gl::GL_STENCIL_BUFFER_BIT);
         gl::glStencilMask(0x00);
+
+        const auto& winProp{ m_window.getProperties() };
+        gl::glViewport(0, 0, winProp.m_width, winProp.m_height);
 
         auto view{ m_camera.getViewMatrix() };
         auto projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };

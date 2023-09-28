@@ -117,7 +117,9 @@ private:
     } };
     // clang-format on
 
-    window::Window&                          m_window;
+    window::Window& m_window;
+    glm::vec3       m_backgroundColor;
+
     Camera                                   m_camera;
     Shader                                   m_modelShader;
     Shader                                   m_lightShader;
@@ -148,6 +150,7 @@ public:
 
     Scene(window::Window& window) noexcept(false)
         : m_window{ window }
+        , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_modelShader{
             "./assets/shader/shader.vert",
@@ -201,7 +204,6 @@ public:
             };
         }
 
-        m_window.setClearColor(0.1f, 0.1f, 0.2f);
         setWindowEventsHandler();
     }
 
@@ -228,6 +230,8 @@ public:
 
     void init()
     {
+        gl::glEnable(gl::GL_DEPTH_TEST);
+
         m_modelShader.use();
         m_directionalLight.applyUniforms(m_modelShader);
         m_spotLight.applyUniforms(m_modelShader);
@@ -238,6 +242,12 @@ public:
     void render()
     {
         PRETTY_FUNCTION_TIME_LOG();
+
+        // clear buffers and update viewport
+        gl::glClearColor(m_backgroundColor.r, m_backgroundColor.g, m_backgroundColor.b, 1.0f);
+        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+        const auto& winProp{ m_window.getProperties() };
+        gl::glViewport(0, 0, winProp.m_width, winProp.m_height);
 
         auto      view{ m_camera.getViewMatrix() };
         auto      projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };

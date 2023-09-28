@@ -26,6 +26,7 @@ set(IMGUI_SOURCES
     "./lib/imgui/backends/imgui_impl_opengl3.cpp"
 )
 
+# main executable
 set(MAIN_EXE main)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${MAIN_EXE} ${SOURCES} ${IMGUI_SOURCES})
@@ -36,8 +37,7 @@ target_link_libraries(${MAIN_EXE} PUBLIC
 )
 
 # copy assets to build directory
-add_custom_command(
-    TARGET ${MAIN_EXE} POST_BUILD
+add_custom_command( TARGET ${MAIN_EXE} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${MAIN_EXE}>/assets
 )
