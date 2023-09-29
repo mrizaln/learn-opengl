@@ -5,6 +5,7 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <concepts>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -16,7 +17,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/norm.hpp>    // glm::length2
-
 #include <glbinding/gl/gl.h>
 
 #include "window.hpp"
@@ -28,6 +28,7 @@
 #include "texture.hpp"
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
+#include "opengl_option_stack.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
@@ -241,9 +242,10 @@ private:
     // clang-format on
 
 private:
-    window::Window& m_window;
-    Framebuffer     m_framebuffer;
-    glm::vec3       m_backgroundColor;
+    window::Window&   m_window;
+    Framebuffer       m_framebuffer;
+    glm::vec3         m_backgroundColor;
+    OpenGLOptionStack m_optionStack;
 
     Camera                                   m_camera;
     Shader                                   m_shader;
@@ -437,18 +439,15 @@ public:
 
         gl::glClearColor(0.25f, 0.25f, 0.28f, 1.0f);
         gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT | gl::GL_STENCIL_BUFFER_BIT);
-        bool cullEnabled{ gl::glIsEnabled(gl::GL_CULL_FACE) };
-        if (cullEnabled) {
-            gl::glDisable(gl::GL_CULL_FACE);
-        }
+
+        m_optionStack.push();
+        m_optionStack.loadDefaults();
 
         m_ndcShader.use();
         gl::glBindTexture(gl::GL_TEXTURE_2D, m_framebuffer.m_textureColorbuffer);
         m_screenPlane.draw();
 
-        if (cullEnabled) {
-            gl::glEnable(gl::GL_CULL_FACE);
-        }
+        m_optionStack.pop();
     }
 
     void updateUniforms()
@@ -523,6 +522,8 @@ private:
                 gl::GL_KEEP,    // stencil test pass, depth test fail
                 gl::GL_INCR     // stencil test pass, depth test pass
             );
+
+            m_optionStack.push(OpenGLOptionStack::DEPTH_TEST);
             gl::glDisable(gl::GL_DEPTH_TEST);
 
             m_outlineShader.use();
@@ -530,7 +531,7 @@ private:
 
             drawContainers(m_outlineShader, m_outlineScale);
 
-            gl::glEnable(gl::GL_DEPTH_TEST);
+            m_optionStack.pop();
             gl::glStencilMask(0x00);    // disable writing
             gl::glStencilFunc(gl::GL_GEQUAL, 0x01, 0xff);
         }
@@ -544,10 +545,8 @@ private:
         m_shader.setUniform("u_projection", projection);
         m_floorMaterial.applyUniform(m_shader);
 
-        bool cullEnabled{ gl::glIsEnabled(gl::GL_CULL_FACE) };
-        if (cullEnabled) {
-            gl::glDisable(gl::GL_CULL_FACE);
-        }
+        // m_optionStack.push(OpenGLOptionStack::CULL_FACE);
+        // gl::glDisable(gl::GL_CULL_FACE);
 
         auto model{ glm::translate(glm::mat4{ 1.0f }, s_floorPosition) };
         model = glm::scale(model, glm::vec3{ 15.0f });
@@ -555,9 +554,7 @@ private:
 
         m_plane.draw();
 
-        if (cullEnabled) {
-            gl::glEnable(gl::GL_CULL_FACE);
-        }
+        // m_optionStack.pop();
     }
 
     void drawLights(const glm::mat4& view, const glm::mat4& projection)
@@ -595,10 +592,8 @@ private:
         m_grassShader.setUniform("u_projection", projection);
         m_grassTexture.activate(m_grassShader);
 
-        bool cullEnabled{ gl::glIsEnabled(gl::GL_CULL_FACE) };
-        if (cullEnabled) {
-            gl::glDisable(gl::GL_CULL_FACE);
-        }
+        m_optionStack.push(OpenGLOptionStack::CULL_FACE);
+        gl::glDisable(gl::GL_CULL_FACE);
 
         for (const auto& pos : s_grassPositions) {
             auto transform{ glm::translate(glm::mat4{ 1.0f }, pos) };
@@ -614,9 +609,7 @@ private:
             m_plane.draw();
         }
 
-        if (cullEnabled) {
-            gl::glEnable(gl::GL_CULL_FACE);
-        }
+        m_optionStack.pop();
     }
 
     void drawWindow(const glm::mat4& view, const glm::mat4& projection)
@@ -626,10 +619,8 @@ private:
         m_windowShader.setUniform("u_projection", projection);
         m_windowTexture.activate(m_windowShader);
 
-        bool cullEnabled{ gl::glIsEnabled(gl::GL_CULL_FACE) };
-        if (cullEnabled) {
-            gl::glDisable(gl::GL_CULL_FACE);
-        }
+        m_optionStack.push(OpenGLOptionStack::CULL_FACE);
+        gl::glDisable(gl::GL_CULL_FACE);
 
         // sort from furthest to nearest
         std::vector<glm::vec3> windowPositions_sorted(s_windowPositions.begin(), s_windowPositions.end());
@@ -645,9 +636,7 @@ private:
             m_plane.draw();
         }
 
-        if (cullEnabled) {
-            gl::glEnable(gl::GL_CULL_FACE);
-        }
+        m_optionStack.pop();
     }
 
     void renderScene()
