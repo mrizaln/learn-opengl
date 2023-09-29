@@ -42,8 +42,9 @@ namespace window
         };
         using KeyMap = std::unordered_multimap<KeyEvent, KeyEventHandler>;
 
-        using CursorPosCallbackFun = std::function<void(Window& window, double xPos, double yPos)>;
-        using ScrollCallbackFun    = std::function<void(Window& window, double xOffset, double yOffset)>;
+        using CursorPosCallbackFun       = std::function<void(Window& window, double xPos, double yPos)>;
+        using ScrollCallbackFun          = std::function<void(Window& window, double xOffset, double yOffset)>;
+        using FramebufferSizeCallbackFun = std::function<void(Window& window, int width, int height)>;
 
         Window(const Window&) = delete;
         Window(Window&&);
@@ -63,6 +64,7 @@ namespace window
         Window& setCaptureMouse(bool value);
         Window& setCursorPosCallback(CursorPosCallbackFun&& func);
         Window& setScrollCallback(ScrollCallbackFun&& func);
+        Window& setFramebuffersizeCallback(FramebufferSizeCallbackFun&& func);
 
         // The function added will be called from the window thread.
         Window& addKeyEventHandler(KeyEvent key, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func);
@@ -93,9 +95,10 @@ namespace window
         bool             m_vsync{ true };
 
         // input
-        KeyMap               m_keyMap;
-        CursorPosCallbackFun m_cursorPosCallback;
-        ScrollCallbackFun    m_scrollCallback;
+        KeyMap                     m_keyMap;
+        CursorPosCallbackFun       m_cursorPosCallback;
+        ScrollCallbackFun          m_scrollCallback;
+        FramebufferSizeCallbackFun m_framebufferSize;
 
         std::queue<std::function<void()>> m_taskQueue;
 

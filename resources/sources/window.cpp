@@ -36,6 +36,9 @@ namespace window
         if (windowWindow == nullptr) { return; }
 
         windowWindow->enqueueTask([windowWindow, width, height] {
+            if (windowWindow->m_framebufferSize) {
+                windowWindow->m_framebufferSize(*windowWindow, width, height);
+            }
             windowWindow->setWindowSize(width, height);
         });
     }
@@ -196,18 +199,8 @@ namespace window
             processInput();
             processQueuedTasks();
 
-            {
-                // util::GpuTimeQueryHelper timer{};
-
-                func();
-
-                glfwSwapBuffers(m_windowHandle);
-
-                // util::ScopeTimeLogger::insert(
-                //     std::format("{} | {}", __PRETTY_FUNCTION__, "gpu time"),
-                //     { .m_time = timer.getTimeElapsedMilli(), .m_threadId = m_attachedThreadId, .m_activity = true }
-                // );
-            }
+            func();
+            glfwSwapBuffers(m_windowHandle);
         }
     }
 
@@ -252,6 +245,12 @@ namespace window
     Window& Window::setScrollCallback(ScrollCallbackFun&& func)
     {
         m_scrollCallback = func;
+        return *this;
+    }
+
+    Window& Window::setFramebuffersizeCallback(FramebufferSizeCallbackFun&& func)
+    {
+        m_framebufferSize = func;
         return *this;
     }
 
