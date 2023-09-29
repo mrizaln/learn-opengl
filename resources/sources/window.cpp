@@ -90,6 +90,7 @@ namespace window
         : m_id{ id }
         , m_windowHandle{ handle }
         , m_properties{ prop }
+        , m_attachedThreadId{ 0 }
     {
         useHere();
         if (!m_contextInitialized) {
@@ -142,15 +143,25 @@ namespace window
 
     void Window::useHere()
     {
-        m_attachedThreadId = util::getThreadId();
-        std::cout << std::format("window {} ({:#x}) attached to thread {:#x}\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
-        glfwMakeContextCurrent(m_windowHandle);
+        if (m_attachedThreadId == util::getThreadId()) {
+            // same thread, do nothing
+            return;
+        } else if (m_attachedThreadId != 0) {
+            // different thread, cannot attach
+            std::cout << std::format("WARNING: [Window] Context ({} | {:#x}) already attached to another thread [{:#x}], cannot attach to this thread [{:#x}].\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId, util::getThreadId());
+            assert(false && "Context already attached to another thread");
+        } else {
+            // no thread attached, attach to this thread
+            m_attachedThreadId = util::getThreadId();
+            std::cout << std::format("INFO: [Window] Context ({} | {:#x}) attached (+) [thread: {:#x}]\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
+            glfwMakeContextCurrent(m_windowHandle);
+        }
     }
 
     void Window::unUse()
     {
         glfwMakeContextCurrent(nullptr);
-        std::cout << std::format("window {} ({:#x}) detached from thread {:#x}\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
+        std::cout << std::format("INFO: [Window] Context ({} | {:#x}) detached (-) [thread: {:#x}]\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
         m_attachedThreadId = 0;
     }
 
@@ -209,7 +220,7 @@ namespace window
     void Window::requestClose()
     {
         glfwSetWindowShouldClose(m_windowHandle, true);
-        std::cout << std::format("window {} ({:#x}) requested to close\n", m_id, (std::size_t)m_windowHandle);
+        std::cout << std::format("INFO: [Window] Window ({} | {:#x}) requested to close\n", m_id, (std::size_t)m_windowHandle);
     }
 
     double Window::getDeltaTime()
