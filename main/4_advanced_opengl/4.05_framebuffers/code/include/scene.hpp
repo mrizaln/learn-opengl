@@ -141,7 +141,7 @@ public:
     gl::GLuint m_rbo;
 
 public:
-    static std::optional<Framebuffer> create()
+    static std::optional<Framebuffer> create(gl::GLint width, gl::GLint height)
     {
         using namespace gl;
 
@@ -150,25 +150,7 @@ public:
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-        // generate texture for color attachment
-        GLuint textureColorbuffer;
-        glGenTextures(1, &textureColorbuffer);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        // generate renderbuffer object for depth and stencil attachment
-        GLuint rbo;
-        glGenRenderbuffers(1, &rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        // attach the attachments
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+        auto [textureColorbuffer, rbo]{ createAttachmentBuffers(width, height) };
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             std::cerr << "ERROR: Framebuffer is not complete!" << '\n';
@@ -182,7 +164,65 @@ public:
     }
 
 private:
-    Framebuffer() = delete;
+    // return textureColorbuffer and rbo
+    [[nodiscard]]
+    static std::pair<gl::GLuint, gl::GLuint> createAttachmentBuffers(gl::GLint width, gl::GLint height)
+    {
+        using namespace gl;
+
+        // generate texture for color attachment
+        GLuint textureColorbuffer;
+        glGenTextures(1, &textureColorbuffer);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // generate renderbuffer object for depth and stencil attachment
+        GLuint rbo;
+        glGenRenderbuffers(1, &rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+        // attach the attachments
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+        return { textureColorbuffer, rbo };
+    }
+
+    static void deleteAttachments(gl::GLuint texObject, gl::GLuint rbo)
+    {
+        gl::glDeleteTextures(1, &texObject);
+        gl::glDeleteRenderbuffers(1, &rbo);
+    }
+
+public:
+    Framebuffer(Framebuffer&& other)
+        : m_framebuffer{ other.m_framebuffer }
+        , m_textureColorbuffer{ other.m_textureColorbuffer }
+        , m_rbo{ other.m_rbo }
+    {
+        other.m_framebuffer        = 0;
+        other.m_textureColorbuffer = 0;
+        other.m_rbo                = 0;
+    }
+
+    ~Framebuffer()
+    {
+        if (m_framebuffer == 0 | m_textureColorbuffer == 0 | m_rbo == 0) {
+            return;
+        }
+
+        deleteAttachments(m_textureColorbuffer, m_rbo);
+        gl::glDeleteFramebuffers(1, &m_framebuffer);
+    }
+
+private:
+    Framebuffer()                   = delete;
+    Framebuffer(const Framebuffer&) = delete;
 
     Framebuffer(gl::GLuint framebuffer, gl::GLuint textureColorbuffer, gl::GLuint rbo)
         : m_framebuffer{ framebuffer }
@@ -197,6 +237,28 @@ public:
         gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, m_framebuffer);
         func();
         gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0);
+    }
+
+    void updateDimension(gl::GLint width, gl::GLint height)
+    {
+        using namespace gl;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+        // detach the old attachments
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+
+        // delete the old attachments
+        deleteAttachments(m_textureColorbuffer, m_rbo);
+
+        // recreate attachments
+        auto [newTexture, newRbo]{ createAttachmentBuffers(width, height) };
+
+        m_textureColorbuffer = newTexture;
+        m_rbo                = newRbo;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 };
 
@@ -289,7 +351,7 @@ public:
 
     Scene(window::Window& window)
         : m_window{ window }
-        , m_framebuffer{ Framebuffer::create().value() }    // skip optional check
+        , m_framebuffer{ Framebuffer::create(window.getProperties().m_width, window.getProperties().m_height).value() }    // skip optional check
         , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_shader{
@@ -436,18 +498,7 @@ public:
         m_framebuffer.use([this]() {
             renderScene();
         });
-
-        gl::glClearColor(0.25f, 0.25f, 0.28f, 1.0f);
-        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT | gl::GL_STENCIL_BUFFER_BIT);
-
-        m_optionStack.push();
-        m_optionStack.loadDefaults();
-
-        m_ndcShader.use();
-        gl::glBindTexture(gl::GL_TEXTURE_2D, m_framebuffer.m_textureColorbuffer);
-        m_screenPlane.draw();
-
-        m_optionStack.pop();
+        drawFramebuffer();
     }
 
     void updateUniforms()
@@ -482,6 +533,20 @@ public:
     }
 
 private:
+    void drawFramebuffer()
+    {
+        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT | gl::GL_STENCIL_BUFFER_BIT);
+
+        m_optionStack.push();
+        m_optionStack.loadDefaults();
+
+        m_ndcShader.use();
+        gl::glBindTexture(gl::GL_TEXTURE_2D, m_framebuffer.m_textureColorbuffer);
+        m_screenPlane.draw();
+
+        m_optionStack.pop();
+    }
+
     void drawCube(const glm::mat4& view, const glm::mat4& projection)
     {
         auto drawContainers = [this, &view, &projection](Shader& shader, const float scale = 1.0f) {
@@ -653,7 +718,7 @@ private:
         gl::glViewport(0, 0, winProp.m_width, winProp.m_height);
 
         auto view{ m_camera.getViewMatrix() };
-        auto projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };
+        auto projection{ m_camera.getProjectionMatrix(winProp.m_width, winProp.m_height) };
 
         updateUniforms();
 
@@ -752,6 +817,13 @@ private:
                 if (window.isMouseCaptured()) {
                     m_camera.lookAround(xoffset, yoffset);
                 }
+            });
+
+        // framebuffer resize
+        m_window
+            .setFramebuffersizeCallback([this](window::Window& /* window */, int width, int height) {
+                gl::glViewport(0, 0, width, height);
+                m_framebuffer.updateDimension(width, height);
             });
     }
 };
