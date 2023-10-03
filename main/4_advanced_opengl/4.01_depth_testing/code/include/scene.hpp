@@ -24,7 +24,7 @@
 #include "plane.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
-#include "texture.hpp"
+#include "image_texture.hpp"
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
 
@@ -49,10 +49,10 @@ struct UniformData
 
 struct Material
 {
-    std::string m_name;
-    Texture     m_diffuse;
-    Texture     m_specular;
-    float       m_shininess;
+    std::string  m_name;
+    ImageTexture m_diffuse;
+    ImageTexture m_specular;
+    float        m_shininess;
 
     Material(
         const std::string&    name,
@@ -61,8 +61,8 @@ struct Material
         float                 shininess
     )
         : m_name{ name }
-        , m_diffuse{ Texture::from(diffuseMap, m_name + ".m_diffuse", 0).value() }       // unwrap
-        , m_specular{ Texture::from(specularMap, m_name + ".m_specular", 1).value() }    // unwrap
+        , m_diffuse{ ImageTexture::from(diffuseMap, m_name + ".m_diffuse", 0).value() }       // unwrap
+        , m_specular{ ImageTexture::from(specularMap, m_name + ".m_specular", 1).value() }    // unwrap
         , m_shininess{ shininess }
     {
     }

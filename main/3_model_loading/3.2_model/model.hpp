@@ -15,7 +15,7 @@
 
 // #include "stringified_enum.hpp"
 
-#include "texture.hpp"
+#include "image_texture.hpp"
 #include "mesh.hpp"
 
 // #define FIELD(M)                    \
@@ -57,7 +57,7 @@ private:
     std::filesystem::path m_filePath;
 
     // NOTE: need a container that does not invalidate its reference on insertion
-    std::map<std::string, Texture> s_loadedTextures;    // loaded textures are stored here to prevent loading the same texture multiple times
+    std::map<std::string, ImageTexture> s_loadedTextures;    // loaded textures are stored here to prevent loading the same texture multiple times
 
 public:
     void draw(Shader& shader) const
@@ -162,7 +162,7 @@ private:
 
                 auto name{ std::format("{}_{}", s_textureTypeToName.at(type), i) };    // e.g. "texture_diffuse_0"; yes, it starts with 0
                 auto unitNum{ overallTextureCount };
-                auto maybeTexture{ Texture::from(texturePath, name, unitNum) };
+                auto maybeTexture{ ImageTexture::from(texturePath, name, unitNum) };
                 if (!maybeTexture.has_value()) {
                     std::cerr << std::format("ERROR: [Texture] Failed to load texture at {}\n", path.C_Str());
                     continue;

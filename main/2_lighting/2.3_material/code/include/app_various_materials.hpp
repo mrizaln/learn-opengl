@@ -18,7 +18,6 @@
 #include "cube.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
-#include "texture.hpp"
 #include "material.hpp"
 
 struct MaterialUniform2

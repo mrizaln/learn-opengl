@@ -26,7 +26,7 @@
 #include "plane.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
-#include "texture.hpp"
+#include "image_texture.hpp"
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
 
@@ -51,10 +51,10 @@ struct UniformData
 
 struct Material
 {
-    std::string m_name;
-    Texture     m_diffuse;
-    Texture     m_specular;
-    float       m_shininess;
+    std::string  m_name;
+    ImageTexture m_diffuse;
+    ImageTexture m_specular;
+    float        m_shininess;
 
     Material(
         const std::string&    name,
@@ -63,8 +63,8 @@ struct Material
         float                 shininess
     )
         : m_name{ name }
-        , m_diffuse{ Texture::from(diffuseMap, m_name + ".m_diffuse", 0).value() }       // unwrap
-        , m_specular{ Texture::from(specularMap, m_name + ".m_specular", 1).value() }    // unwrap
+        , m_diffuse{ ImageTexture::from(diffuseMap, m_name + ".m_diffuse", 0).value() }       // unwrap
+        , m_specular{ ImageTexture::from(specularMap, m_name + ".m_specular", 1).value() }    // unwrap
         , m_shininess{ shininess }
     {
     }
@@ -188,8 +188,8 @@ private:
     Plane                                    m_plane;
     Material                                 m_cubeMaterial;
     Material                                 m_floorMaterial;
-    Texture                                  m_grassTexture;
-    Texture                                  m_windowTexture;
+    ImageTexture                             m_grassTexture;
+    ImageTexture                             m_windowTexture;
     DirectionalLight                         m_directionalLight;
     std::array<PointLight, s_numPointLights> m_pointLights;
     SpotLight                                m_spotLight;
@@ -254,8 +254,8 @@ public:
             /* .m_specular  = */ "./assets/texture/marble.jpg",
             /* .m_shininess = */ 32.0f,
         }
-        , m_grassTexture{ Texture::from("./assets/texture/grass.png", "u_texture", 0).value() }      // skip optional check
-        , m_windowTexture{ Texture::from("./assets/texture/window.png", "u_texture", 0).value() }    // skip optional check
+        , m_grassTexture{ ImageTexture::from("./assets/texture/grass.png", "u_texture", 0).value() }      // skip optional check
+        , m_windowTexture{ ImageTexture::from("./assets/texture/window.png", "u_texture", 0).value() }    // skip optional check
         , m_directionalLight{
             .m_name      = "u_directionalLight",
             .m_direction = { -0.2f, -1.0f, -0.3f },

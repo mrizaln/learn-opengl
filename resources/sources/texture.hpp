@@ -13,100 +13,102 @@
 
 #include "shader.hpp"
 
-class Texture
+class ImageData
 {
-private:
-    class ImageData
-    {
-    public:
-        const int            m_width{};
-        const int            m_height{};
-        const int            m_nrChannels{};
-        const unsigned char* m_data{};
-
-    public:
-        ImageData(const ImageData&)            = delete;
-        ImageData& operator=(const ImageData&) = delete;
-        ImageData(ImageData&& other)
-            : m_width{ other.m_width }
-            , m_height{ other.m_height }
-            , m_nrChannels{ other.m_nrChannels }
-            , m_data{ other.m_data }
-        {
-            other.m_data = nullptr;
-        }
-
-        ~ImageData()
-        {
-            if (m_data) {
-                stbi_image_free(const_cast<unsigned char*>(m_data));
-            }
-        }
-
-    private:
-        ImageData(int w, int h, int c, unsigned char* d)
-            : m_width{ w }
-            , m_height{ h }
-            , m_nrChannels{ c }
-            , m_data{ d }
-        {
-        }
-
-    public:
-        static std::optional<ImageData> from(std::filesystem::path imagePath)
-        {
-            int            width, height, nrChannels;
-            unsigned char* data{ stbi_load(imagePath.c_str(), &width, &height, &nrChannels, 0) };
-            if (!data) {
-                std::cerr << std::format("Failed to load image at {}\n", imagePath.string());
-                return {};
-            }
-            return ImageData{ width, height, nrChannels, data };
-        }
-    };
-
-private:
-    gl::GLuint            m_id;
-    gl::GLint             m_unitNum;
-    std::filesystem::path m_imagePath;
-    std::string           m_uniformName;
+public:
+    const int            m_width{};
+    const int            m_height{};
+    const int            m_nrChannels{};
+    const unsigned char* m_data{};
 
 public:
-    static std::optional<Texture> from(std::filesystem::path imagePath, const std::string& uniformName, gl::GLint textureUnitNum)
+    ImageData(const ImageData&)            = delete;
+    ImageData& operator=(const ImageData&) = delete;
+    ImageData(ImageData&& other)
+        : m_width{ other.m_width }
+        , m_height{ other.m_height }
+        , m_nrChannels{ other.m_nrChannels }
+        , m_data{ other.m_data }
     {
-        stbi_set_flip_vertically_on_load(true);
+        other.m_data = nullptr;
+    }
 
-        auto maybeImageData{ ImageData::from(imagePath) };
-        if (!maybeImageData) {
+    ~ImageData()
+    {
+        if (m_data) {
+            stbi_image_free(const_cast<unsigned char*>(m_data));
+        }
+    }
+
+private:
+    ImageData(int w, int h, int c, unsigned char* d)
+        : m_width{ w }
+        , m_height{ h }
+        , m_nrChannels{ c }
+        , m_data{ d }
+    {
+    }
+
+public:
+    static std::optional<ImageData> from(std::filesystem::path imagePath, bool flipVertically = true)
+    {
+        stbi_set_flip_vertically_on_load(flipVertically);
+
+        int            width, height, nrChannels;
+        unsigned char* data{ stbi_load(imagePath.c_str(), &width, &height, &nrChannels, 0) };
+        if (!data) {
+            std::cerr << std::format("Failed to load image at {}\n", imagePath.string());
             return {};
         }
-        return Texture{ std::move(*maybeImageData), imagePath, uniformName, textureUnitNum };
+        return ImageData{ width, height, nrChannels, data };
+    }
+
+    // pad data to 4 channels
+    static std::vector<std::array<unsigned char, 4>> addPadding(const ImageData& data)
+    {
+        std::vector<std::array<unsigned char, 4>> newData(std::size_t(data.m_width * data.m_height));    // default initialize
+        for (std::size_t i{ 0 }; i < newData.size(); ++i) {
+            auto& byte{ newData[i] };
+            for (int channel{ 0 }; channel < data.m_nrChannels; ++channel) {
+                auto idx{ i * (std::size_t)data.m_nrChannels + (std::size_t)channel };
+                byte[(std::size_t)channel] = data.m_data[idx];
+            }
+            byte[3] = 0xff;    // set alpha to max value
+        }
+        return newData;
+    }
+};
+
+// base class for all textures
+class Texture
+{
+protected:
+    const gl::GLenum m_target;
+    gl::GLuint       m_id;
+    gl::GLint        m_unitNum;
+    std::string      m_uniformName;
+
+protected:
+    Texture() = delete;
+
+    Texture(gl::GLenum target, gl::GLint unitNum, const std::string& uniformName)
+        : m_target{ target }
+        , m_id{ 0 }
+        , m_unitNum{ unitNum }
+        , m_uniformName{ uniformName }
+    {
+    }
+
+    Texture(gl::GLenum target, gl::GLuint id, gl::GLint unitNum, const std::string& uniformName)
+        : m_target{ target }
+        , m_id{ id }
+        , m_unitNum{ unitNum }
+        , m_uniformName{ uniformName }
+    {
     }
 
 public:
-    Texture(Texture&& other) noexcept
-        : m_id{ other.m_id }
-        , m_unitNum{ other.m_unitNum }
-        , m_imagePath{ std::move(other.m_imagePath) }
-        , m_uniformName{ std::move(other.m_uniformName) }
-    {
-        other.m_id = 0;
-    }
-
-    Texture(const Texture& other)
-        : m_id{ other.m_id }
-        , m_unitNum{ other.m_unitNum }
-        , m_imagePath{ other.m_imagePath }
-        , m_uniformName{ other.m_uniformName }
-    {
-    }
-
-    ~Texture()
-    {
-        if (m_id != 0) {
-            gl::glDeleteTextures(1, &m_id);
-        }
-    }
+    virtual ~Texture() = 0;    // so that the class can't be instantiated
 
     gl::GLuint getId() const
     {
@@ -128,59 +130,20 @@ public:
         m_uniformName = name;
     }
 
-    const std::filesystem::path& getImagePath() const
-    {
-        return m_imagePath;
-    }
-
     void activate(Shader& shader) const
     {
         shader.setUniform(m_uniformName, m_unitNum);
         gl::glActiveTexture(gl::GL_TEXTURE0 + std::underlying_type_t<gl::GLenum>(m_unitNum));
-        gl::glBindTexture(gl::GL_TEXTURE_2D, m_id);
-    }
-
-private:
-    Texture(ImageData&& imageData, std::filesystem::path imagePath, const std::string& uniformName, gl::GLint textureUnitNum)
-        : m_unitNum{ textureUnitNum }
-        , m_imagePath{ imagePath }
-        , m_uniformName{ uniformName }
-    {
-        gl::glGenTextures(1, &m_id);
-        gl::glBindTexture(gl::GL_TEXTURE_2D, m_id);
-
-        gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S, gl::GL_REPEAT);
-        gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T, gl::GL_REPEAT);
-        gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR_MIPMAP_NEAREST);
-        gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
-
-        if (imageData.m_nrChannels == 4) {
-            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, imageData.m_data);
-        } else if (imageData.m_nrChannels == 3) {
-            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGB, imageData.m_width, imageData.m_height, 0, gl::GL_RGB, gl::GL_UNSIGNED_BYTE, imageData.m_data);
-        } else {
-            // pad data if not rgb or rgba
-            auto newData{ padData(imageData) };
-            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, &newData.front());
-        }
-        gl::glGenerateMipmap(gl::GL_TEXTURE_2D);
-
-        gl::glBindTexture(gl::GL_TEXTURE_2D, 0);
-    }
-
-    std::vector<std::array<unsigned char, 4>> padData(const ImageData& data)
-    {
-        std::vector<std::array<unsigned char, 4>> newData(std::size_t(data.m_width * data.m_height));    // default initialize
-        for (std::size_t i{ 0 }; i < newData.size(); ++i) {
-            auto& byte{ newData[i] };
-            for (int channel{ 0 }; channel < data.m_nrChannels; ++channel) {
-                auto idx{ i * (std::size_t)data.m_nrChannels + (std::size_t)channel };
-                byte[(std::size_t)channel] = data.m_data[idx];
-            }
-            byte[3] = 0xff;    // set alpha to max value
-        }
-        return newData;
+        gl::glBindTexture(m_target, m_id);
     }
 };
+
+// handle the deletion of the texture object, the derived class doesn't need to worry about it
+inline Texture::~Texture()
+{
+    if (m_id != 0) {
+        gl::glDeleteTextures(1, &m_id);
+    }
+}
 
 #endif /* end of include guard: TEXTURE_HPP_QDZVR1QU */

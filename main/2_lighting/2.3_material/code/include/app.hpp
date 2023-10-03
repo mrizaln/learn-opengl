@@ -18,7 +18,6 @@
 #include "cube.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
-#include "texture.hpp"
 
 template <typename T>
 struct UniformData
