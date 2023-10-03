@@ -1,0 +1,1 @@
+../../../../../resources/sources/image_texture.hpp
