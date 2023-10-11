@@ -10,15 +10,15 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-struct GlslVersion
-{
-    int major;
-    int minor;
-};
-
 class ImGuiLayer
 {
 private:
+    struct GlslVersion
+    {
+        int major;
+        int minor;
+    };
+
 #define ENUM_FIELDS(M)             \
     M(SHOW_MAIN_WINDOW)            \
     M(SHOW_SCOPE_TIMER_LOG_WINDOW) \
@@ -106,9 +106,13 @@ public:
         , m_scene{ scene }
         , m_glslVersion{ glslVersion }
     {
+        m_window.useHere();
+
         IMGUI_CHECKVERSION();
         m_imguiContext = ImGui::CreateContext();
-        m_imguiIo      = &ImGui::GetIO();
+        ImGui::SetCurrentContext(m_imguiContext);
+
+        m_imguiIo = &ImGui::GetIO();
         // m_imguiIo->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;    // Enable Keyboard Controls
         // m_imguiIo->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;     // Enable Gamepad Controls
 
@@ -116,11 +120,9 @@ public:
         ImGui::StyleColorsDark();
 
         // Setup Platform/Renderer bindings
-        m_window.useHere();
         ImGui_ImplGlfw_InitForOpenGL(m_window.getHandle(), true);
         auto glslVersionString{ std::format("#version {}{}0 core", m_glslVersion.major, m_glslVersion.minor) };
         ImGui_ImplOpenGL3_Init(glslVersionString.c_str());
-        m_window.unUse();
 
         // setup actual window key mapping
         m_window
@@ -130,6 +132,8 @@ public:
             .addKeyEventHandler(GLFW_KEY_L, GLFW_MOD_ALT, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
                 m_windowShown.toggle(MyImGuiWindowShown::SHOW_SCOPE_TIMER_LOG_WINDOW);
             });
+
+        m_window.unUse();
     }
 
     ~ImGuiLayer()
@@ -146,7 +150,7 @@ public:
 
         using enum MyImGuiWindowShown::Enum;
 
-        // ImGui::SetCurrentContext(m_imguiContext);
+        ImGui::SetCurrentContext(m_imguiContext);
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -184,6 +188,10 @@ private:
         if (ImGui::Checkbox("invert depth", &invertDepth)) {
             m_scene.invertDepthOutput(invertDepth);
         }
+
+        bool& skybox{ m_scene.m_skyboxEnabled };
+        ImGui::Checkbox("skybox", &skybox);
+
         ImGui::Separator();
 
         ImGui::Checkbox("outline", &m_scene.m_enableOutline);

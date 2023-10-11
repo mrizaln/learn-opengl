@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(ENABLE_SANTIZER OFF CACHE BOOL "Enable sanitizer")
+
 # turn off subobject linkage warning (what is this warning about actually?)
 add_compile_options(-Wno-subobject-linkage)
 
@@ -26,6 +28,18 @@ set(IMGUI_SOURCES
     "./lib/imgui/backends/imgui_impl_opengl3.cpp"
 )
 
+# sanitizer
+if (ENABLE_SANTIZER)
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=undefined)
+
+    add_compile_options(-fsanitize=leak)
+    add_link_options(-fsanitize=leak)
+endif()
+
 # main executable
 set(MAIN_EXE main)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -37,7 +51,7 @@ target_link_libraries(${MAIN_EXE} PUBLIC
 )
 
 # copy assets to build directory
-add_custom_command( TARGET ${MAIN_EXE} POST_BUILD
+add_custom_command(TARGET ${MAIN_EXE} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${MAIN_EXE}>/assets
 )

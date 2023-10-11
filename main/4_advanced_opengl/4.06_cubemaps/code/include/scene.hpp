@@ -9,27 +9,26 @@
 #include <cstdint>
 #include <format>
 #include <iostream>
-#include <optional>
-#include <thread>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/norm.hpp>    // glm::length2
-#include <glbinding/gl/gl.h>
 
-#include "window.hpp"
-#include "window_manager.hpp"
-#include "cube.hpp"
-#include "plane.hpp"
 #include "camera.hpp"
+#include "cube.hpp"
+#include "cubemap.hpp"
+#include "framebuffer.hpp"
+#include "image_texture.hpp"
+#include "opengl_option_stack.hpp"
+#include "plane.hpp"
+#include "scope_time_logger.hpp"
 #include "shader.hpp"
 #include "stringified_enum.hpp"
-#include "scope_time_logger.hpp"
-#include "opengl_option_stack.hpp"
-#include "image_texture.hpp"
-#include "cubemap.hpp"
+#include "window.hpp"
+#include "window_manager.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
@@ -42,13 +41,6 @@
     {                                        \
         FIELDS(_UNIFORM_APPLY_EXPANDER)      \
     }
-
-template <typename T>
-struct UniformData
-{
-    std::string m_name;
-    T           m_value;
-};
 
 struct Material
 {
@@ -134,139 +126,17 @@ using LightsUsed = STRINGIFIED_ENUM_FLAG(LightsUsed, unsigned int, ENUM_FIELDS);
 
 class ImGuiLayer;
 
-class Framebuffer
-{
-public:
-    gl::GLuint m_framebuffer;
-    gl::GLuint m_textureColorbuffer;
-    gl::GLuint m_rbo;
-
-public:
-    static std::optional<Framebuffer> create(gl::GLint width, gl::GLint height)
-    {
-        using namespace gl;
-
-        // generate framebuffer
-        GLuint framebuffer;
-        glGenFramebuffers(1, &framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        auto [textureColorbuffer, rbo]{ createAttachmentBuffers(width, height) };
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cerr << "ERROR: Framebuffer is not complete!" << '\n';
-
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            return std::nullopt;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        return Framebuffer{ framebuffer, textureColorbuffer, rbo };
-    }
-
-private:
-    // return textureColorbuffer and rbo
-    [[nodiscard]]
-    static std::pair<gl::GLuint, gl::GLuint> createAttachmentBuffers(gl::GLint width, gl::GLint height)
-    {
-        using namespace gl;
-
-        // generate texture for color attachment
-        GLuint textureColorbuffer;
-        glGenTextures(1, &textureColorbuffer);
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        // generate renderbuffer object for depth and stencil attachment
-        GLuint rbo;
-        glGenRenderbuffers(1, &rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-        // attach the attachments
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-        return { textureColorbuffer, rbo };
-    }
-
-    static void deleteAttachments(gl::GLuint texObject, gl::GLuint rbo)
-    {
-        gl::glDeleteTextures(1, &texObject);
-        gl::glDeleteRenderbuffers(1, &rbo);
-    }
-
-public:
-    Framebuffer(Framebuffer&& other)
-        : m_framebuffer{ other.m_framebuffer }
-        , m_textureColorbuffer{ other.m_textureColorbuffer }
-        , m_rbo{ other.m_rbo }
-    {
-        other.m_framebuffer        = 0;
-        other.m_textureColorbuffer = 0;
-        other.m_rbo                = 0;
-    }
-
-    ~Framebuffer()
-    {
-        if (m_framebuffer == 0 | m_textureColorbuffer == 0 | m_rbo == 0) {
-            return;
-        }
-
-        deleteAttachments(m_textureColorbuffer, m_rbo);
-        gl::glDeleteFramebuffers(1, &m_framebuffer);
-    }
-
-private:
-    Framebuffer()                   = delete;
-    Framebuffer(const Framebuffer&) = delete;
-
-    Framebuffer(gl::GLuint framebuffer, gl::GLuint textureColorbuffer, gl::GLuint rbo)
-        : m_framebuffer{ framebuffer }
-        , m_textureColorbuffer{ textureColorbuffer }
-        , m_rbo{ rbo }
-    {
-    }
-
-public:
-    void use(std::function<void()>&& func)
-    {
-        gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, m_framebuffer);
-        func();
-        gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0);
-    }
-
-    void updateDimension(gl::GLint width, gl::GLint height)
-    {
-        using namespace gl;
-
-        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
-
-        // detach the old attachments
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
-
-        // delete the old attachments
-        deleteAttachments(m_textureColorbuffer, m_rbo);
-
-        // recreate attachments
-        auto [newTexture, newRbo]{ createAttachmentBuffers(width, height) };
-
-        m_textureColorbuffer = newTexture;
-        m_rbo                = newRbo;
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-};
-
 class Scene
 {
 private:
     friend ImGuiLayer;
+
+    template <typename T>
+    struct UniformData
+    {
+        std::string m_name;
+        T           m_value;
+    };
 
     // clang-format off
     static inline constexpr std::array<glm::vec3, 2> s_cubePositions{ {
@@ -330,6 +200,7 @@ private:
     std::array<PointLight, s_numPointLights> m_pointLights;
     SpotLight                                m_spotLight;
 
+    bool m_skyboxEnabled{ true };
     bool m_drawWireFrame{ false };
     bool m_invertRender{ false };
     bool m_rotate{ false };
@@ -415,7 +286,7 @@ public:
         }() }
         , m_directionalLight{
             .m_name      = "u_directionalLight",
-            .m_direction = { -0.2f, -1.0f, -0.3f },
+            .m_direction = { 0.43, -0.51, 0.75 },
             .m_ambient   = { 0.2f, 0.2f, 0.2f },
             .m_diffuse   = { 0.5f, 0.5f, 0.5f },
             .m_specular  = { 1.0f, 1.0f, 1.0f },
@@ -425,16 +296,16 @@ public:
             .m_name        = "u_spotLight",
             .m_position    = m_camera.m_position,
             .m_direction   = m_camera.m_front,
-            .m_ambient     = m_directionalLight.m_ambient,
-            .m_diffuse     = m_directionalLight.m_diffuse,
-            .m_specular    = m_directionalLight.m_specular,
+            .m_ambient     = { 0.0f, 0.0f, 0.0f },
+            .m_diffuse     = { 0.75f, 0.75f, 0.75f },
+            .m_specular    = { 1.0f, 1.0f, 1.0f },
             .m_cutOff      = glm::cos(glm::radians(12.5f)),
             .m_outerCutOff = glm::cos(glm::radians(15.0f)),
             .m_constant    = 1.0f,
             .m_linear      = 0.09f,
             .m_quadratic   = 0.032f,
         }
-        , u_activatedLights{ "u_enabledLightsFlag", LightsUsed::LIGHT_POINT }
+        , u_activatedLights{ "u_enabledLightsFlag", { LightsUsed::LIGHT_DIRECTIONAL, LightsUsed::LIGHT_POINT } }
         , u_nearPlane{ "u_nearPlane", m_camera.m_near }
         , u_farPlane{ "u_farPlane", m_camera.m_far }
         , u_enableColorOutput{ "u_enableColorOutput", true }
@@ -442,44 +313,22 @@ public:
         , u_invertDepthOutput{ "u_invertDepthOutput", false }
         , u_outlineColor{ "u_outlineColor", { 0.04, 0.28, 0.26 } }
     {
-
         for (std::size_t i{ 0 }; i < s_numPointLights; ++i) {
             m_pointLights[i] = {
                 .m_name      = std::format("u_pointLight[{}]", i),
                 .m_position  = s_pointLightsPositions[i],
-                .m_ambient   = m_directionalLight.m_ambient,
-                .m_diffuse   = m_directionalLight.m_diffuse,
-                .m_specular  = m_directionalLight.m_specular,
+                .m_ambient   = { 0.0f, 0.0f, 0.0f },
+                .m_diffuse   = { 0.65f, 0.65f, 0.65f },
+                .m_specular  = { 1.0f, 1.0f, 1.0f },
                 .m_constant  = 1.0f,
                 .m_linear    = 0.09f,
                 .m_quadratic = 0.032f,
             };
         }
-
         setWindowEventsHandler();
     }
 
 public:
-    void readDeviceInformation()
-    {
-        m_window.useHere();
-
-        // device information
-        auto vendor{ glGetString(gl::GL_VENDOR) };        // Returns the vendor
-        auto renderer{ glGetString(gl::GL_RENDERER) };    // Returns a hint to the model
-        std::cout << '\n';
-        std::cout << "Device: " << renderer << '\n';
-        std::cout << "Vendor: " << vendor << '\n';
-
-        // int nrAttributes;
-        // glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-        // std::cout << "Maximum number of vertex attributes supported: " << nrAttributes << '\n';
-
-        std::cout << '\n';
-
-        m_window.unUse();
-    }
-
     void init()
     {
         m_framebuffer.use([this]() {
@@ -553,13 +402,15 @@ public:
 private:
     void drawFramebuffer()
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT | gl::GL_STENCIL_BUFFER_BIT);
 
         m_optionStack.push();
         m_optionStack.loadDefaults();
 
         m_ndcShader.use();
-        gl::glBindTexture(gl::GL_TEXTURE_2D, m_framebuffer.m_textureColorbuffer);
+        m_framebuffer.bindTexture();
         m_screenPlane.draw();
 
         m_optionStack.pop();
@@ -567,6 +418,8 @@ private:
 
     void drawCube(const glm::mat4& view, const glm::mat4& projection)
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         auto drawContainers = [this, &view, &projection](Shader& shader, const float scale = 1.0f) {
             shader.setUniform("u_view", view);
             shader.setUniform("u_projection", projection);
@@ -622,8 +475,11 @@ private:
 
     void drawSkybox(const glm::mat4& view, const glm::mat4& projection)
     {
-        m_optionStack.push();
-        m_optionStack.loadDefaults();
+        PRETTY_FUNCTION_TIME_LOG();
+
+        m_optionStack.push(OpenGLOptionStack::CULL_FACE);
+        gl::glDisable(gl::GL_CULL_FACE);
+        gl::glDepthFunc(gl::GL_LEQUAL);    // depth test pass if depth <= 1.0
 
         glm::mat4 viewWithoutTranslation{ glm::mat3{ view } };
 
@@ -634,11 +490,14 @@ private:
 
         m_cube.draw();
 
+        gl::glDepthFunc(gl::GL_LESS);
         m_optionStack.pop();
     }
 
     void drawFloor(const glm::mat4& view, const glm::mat4& projection)
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         m_shader.use();
         m_shader.setUniform("u_viewPos", m_camera.m_position);
         m_shader.setUniform("u_view", view);
@@ -659,6 +518,8 @@ private:
 
     void drawLights(const glm::mat4& view, const glm::mat4& projection)
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         m_lightShader.use();
         m_lightShader.setUniform("u_view", view);
         m_lightShader.setUniform("u_projection", projection);
@@ -687,6 +548,8 @@ private:
 
     void drawGrass(const glm::mat4& view, const glm::mat4& projection)
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         m_grassShader.use();
         m_grassShader.setUniform("u_view", view);
         m_grassShader.setUniform("u_projection", projection);
@@ -714,6 +577,8 @@ private:
 
     void drawWindow(const glm::mat4& view, const glm::mat4& projection)
     {
+        PRETTY_FUNCTION_TIME_LOG();
+
         m_windowShader.use();
         m_windowShader.setUniform("u_view", view);
         m_windowShader.setUniform("u_projection", projection);
@@ -757,15 +622,17 @@ private:
 
         updateUniforms();
 
-        drawSkybox(view, projection);
         drawFloor(view, projection);
         drawCube(view, projection);
         drawGrass(view, projection);
-
         if (u_activatedLights.m_value.test(LightsUsed::LIGHT_POINT)) {
             drawLights(view, projection);
         }
+        if (m_skyboxEnabled) {
+            drawSkybox(view, projection);
+        }
 
+        // still needs to be the last one to be drawn, blending is hard :(
         drawWindow(view, projection);
     }
 
@@ -859,7 +726,7 @@ private:
         m_window
             .setFramebuffersizeCallback([this](window::Window& /* window */, int width, int height) {
                 gl::glViewport(0, 0, width, height);
-                m_framebuffer.updateDimension(width, height);
+                m_framebuffer.resize(width, height);
             });
     }
 };

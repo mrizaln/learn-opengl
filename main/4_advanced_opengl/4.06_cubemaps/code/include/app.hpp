@@ -1,9 +1,13 @@
 #ifndef APP_HPP_SDXGMECI
 #define APP_HPP_SDXGMECI
 
+#include <concepts>
 #include <format>
+#include <future>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -16,24 +20,92 @@
 #include "scope_time_logger.hpp"
 
 #include "scene.hpp"
+#include "scene2.hpp"
 #include "imgui_layer.hpp"
 
 static constexpr int         DEFAULT_WINDOW_WIDTH  = 960;
 static constexpr int         DEFAULT_WINDOW_HEIGHT = 720;
 static constexpr std::string DEFAULT_WINDOW_NAME   = "LearnOpenGL";
 
+class App;
+
+template <typename S>
+    requires requires(S scene) {
+        scene.init();
+        scene.render();
+    } && std::constructible_from<S, window::Window&>
+class Task
+{
+public:
+    friend App;
+
+private:
+    std::optional<window::Window> m_window;
+    S                             m_scene;
+    std::jthread                  m_thread;
+    std::function<void()>         m_threadFunc;
+    std::function<void()>         m_attachmentFunc;
+
+public:
+    static Task create(const std::string& name = DEFAULT_WINDOW_NAME)
+    {
+        auto& windowManager{ window::WindowManager::getInstance()->get() };
+        auto  window{ windowManager.createWindow(name, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT).value() };
+
+        window.useHere();
+        return Task{ std::move(window) };
+    }
+
+private:
+    Task(window::Window&& win)
+        : m_window{ std::move(win) }
+        , m_scene{ *m_window }
+    {
+        m_threadFunc = [this]() {
+            m_window->useHere();
+            m_scene.init();
+            m_window->run([this] {
+                m_scene.render();
+                if (m_attachmentFunc) {
+                    m_attachmentFunc();
+                }
+            });
+            m_window.reset();
+        };
+
+        m_window->unUse();
+    }
+
+    Task(const Task&) = delete;
+    Task(Task&&)      = default;
+
+public:
+    void addAttachment(std::function<void()>&& func)
+    {
+        m_attachmentFunc = std::move(func);
+    }
+
+    void run()
+    {
+        m_thread = std::jthread{ m_threadFunc };
+    }
+};
+
 class App
 {
+public:
+    using Task1 = Task<Scene>;
+    using Task2 = Task<Scene2>;
+
 private:
     static inline std::unique_ptr<App> s_instance;
 
-    window::Window m_window;
-    std::jthread   m_windowThread;
-    Scene          m_scene;
-    ImGuiLayer     m_imgui;
+    Task1 m_task1;
+    Task2 m_task2;
 
-    std::atomic<bool> m_running{ false };
-    bool              m_imguiEnabled{ true };
+    ImGuiLayer m_imguiLayer;
+
+    std::once_flag m_onceFlag;
 
 public:
     static void init() noexcept(false)
@@ -41,8 +113,7 @@ public:
         if (s_instance) { return; }
 
         if (!glfwInit()) {
-            std::cerr << "Failed to initialize GLFW\n";
-            return;
+            throw std::runtime_error{ "Failed to initialize GLFW" };
         }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -54,15 +125,7 @@ public:
             throw std::runtime_error{ "Failed to create WindowManager instance" };
         }
 
-        auto& windowManager{ window::WindowManager::getInstance()->get() };
-
-        auto window{ windowManager.createWindow(DEFAULT_WINDOW_NAME, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT) };
-        if (!window.has_value()) {
-            throw std::runtime_error{ "Failed to create Window instance" };
-        }
-
-        window->useHere();
-        s_instance.reset(new App{ std::move(window.value()) });
+        s_instance.reset(new App{});
     }
 
     static void run() noexcept(false)
@@ -79,35 +142,38 @@ public:
         window::WindowManager::destroyInstance();
 
         glfwTerminate();
-
-        if (auto records{ util::ScopeTimeLogger::read(util::ScopeTimeLogger::ScopeStatus::ACTIVE_AND_INACTIVE) }; records) {
-            std::cout << "\n>>> ScopeTimeLogger records:\n";
-            for (auto& [name, time, threadId, activity] : *records) {
-                std::cout << std::format("[{:#x}]: {:.3f} ms ({} | {})\n", threadId, time, name, activity ? "active" : "inactive");
-            }
-        }
     }
 
 public:
     ~App() = default;
 
 private:
-    App()                      = delete;
     App(const App&)            = delete;
     App(App&&)                 = delete;
     App& operator=(const App&) = delete;
     App& operator=(App&&)      = delete;
 
-    App(window::Window&& win)
-        : m_window{ std::move(win) }
-        , m_scene{ m_window }
-        , m_imgui{ m_window, m_scene }
+    App()
+        : m_task1{ Task1::create("LearnOpenGL - Skybox") }
+        , m_task2{ Task2::create("LearnOpenGL - Environment Mapping") }
+        , m_imguiLayer{ m_task1.m_window.value(), m_task1.m_scene }
     {
-        m_scene.readDeviceInformation();
+        std::call_once(m_onceFlag, [this] {
+            m_task1.m_window->useHere();
 
-        // something like debug tools in minecraft
-        m_window.addKeyEventHandler(GLFW_KEY_F3, 0, window::Window::KeyActionType::CALLBACK, [this](window::Window&) {
-            m_imguiEnabled = !m_imguiEnabled;
+            // device information
+            auto vendor{ glGetString(gl::GL_VENDOR) };        // Returns the vendor
+            auto renderer{ glGetString(gl::GL_RENDERER) };    // Returns a hint to the model
+            std::cout << '\n';
+            std::cout << "Device: " << renderer << '\n';
+            std::cout << "Vendor: " << vendor << '\n';
+            std::cout << '\n';
+
+            m_task1.m_window->unUse();
+        });
+
+        m_task1.addAttachment([this] {
+            m_imguiLayer.render();
         });
     }
 
@@ -116,23 +182,11 @@ private:
     {
         util::ScopeTimeLogger::start();
 
-        m_running      = true;
-        m_windowThread = std::jthread{
-            [this]() {
-                m_window.useHere();
-
-                m_scene.init();
-                m_window.run([this] {
-                    m_scene.render();
-                    if (m_imguiEnabled) { m_imgui.render(); }
-                });
-
-                m_running = false;
-            }
-        };
+        m_task1.run();
+        m_task2.run();
 
         auto& windowManager{ window::WindowManager::getInstance()->get() };
-        while (windowManager.hasWindowOpened() && m_running) {
+        while (windowManager.hasWindowOpened()) {
             PRETTY_FUNCTION_TIME_LOG_WITH_ARG("pollEvents");
 
             using window::operator""_fps;
