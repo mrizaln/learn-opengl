@@ -17,14 +17,17 @@
 
 namespace util
 {
-    std::size_t getThreadId()
+    // idk which is better, using hash or using stringstream to get numeric representation of the id
+    std::size_t getThreadNum(const std::thread::id& threadId)
     {
-        std::size_t       threadId;
-        std::stringstream ss;
-        ss << std::this_thread::get_id();
-        ss >> threadId;
+        // auto hash{ std::hash<std::thread::id>{} };
+        // return hash(threadId);
 
-        return threadId;
+        std::size_t       threadId_num;
+        std::stringstream ss;
+        ss << threadId;
+        ss >> threadId_num;
+        return threadId_num;
     }
 }
 
@@ -93,7 +96,7 @@ namespace window
         : m_id{ id }
         , m_windowHandle{ handle }
         , m_properties{ prop }
-        , m_attachedThreadId{ 0 }
+        , m_attachedThreadId{ std::nullopt }
     {
         useHere();
         if (!m_contextInitialized) {
@@ -146,26 +149,52 @@ namespace window
 
     void Window::useHere()
     {
-        if (m_attachedThreadId == util::getThreadId()) {
-            // same thread, do nothing
-            return;
-        } else if (m_attachedThreadId != 0) {
-            // different thread, cannot attach
-            std::cout << std::format("WARNING: [Window] Context ({} | {:#x}) already attached to another thread [{:#x}], cannot attach to this thread [{:#x}].\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId, util::getThreadId());
-            assert(false && "Context already attached to another thread");
-        } else {
+        if (!m_attachedThreadId.has_value()) {
             // no thread attached, attach to this thread
-            m_attachedThreadId = util::getThreadId();
-            std::cout << std::format("INFO: [Window] Context ({} | {:#x}) attached (+) [thread: {:#x}]\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
+
+            m_attachedThreadId = std::this_thread::get_id();
+
+            std::cout << std::format(
+                "INFO: [Window] Context ({} | {:#x}) attached (+) [thread: {:#x}]\n",
+                m_id,
+                (std::size_t)m_windowHandle,
+                util::getThreadNum(*m_attachedThreadId)
+            );
+
             glfwMakeContextCurrent(m_windowHandle);
+
+        } else if (m_attachedThreadId == std::this_thread::get_id()) {
+
+            // same thread, do nothing
+
+        } else {
+            // different thread, cannot attach
+
+            std::cout << std::format(
+                "WARNING: [Window] Context ({} | {:#x}) already attached to another thread [{:#x}], cannot attach to this thread [{:#x}].\n",
+                m_id,
+                (std::size_t)m_windowHandle,
+                util::getThreadNum(*m_attachedThreadId),
+                util::getThreadNum(std::this_thread::get_id())
+            );
+
+            assert(false && "Context already attached to another thread");
         }
     }
 
     void Window::unUse()
     {
         glfwMakeContextCurrent(nullptr);
-        std::cout << std::format("INFO: [Window] Context ({} | {:#x}) detached (-) [thread: {:#x}]\n", m_id, (std::size_t)m_windowHandle, m_attachedThreadId);
-        m_attachedThreadId = 0;
+        if (m_attachedThreadId.has_value()) {
+            std::cout << std::format(
+                "INFO: [Window] Context ({} | {:#x}) detached (-) [thread: {:#x}]\n",
+                m_id,
+                (std::size_t)m_windowHandle,
+                util::getThreadNum(*m_attachedThreadId)
+            );
+        }
+
+        m_attachedThreadId.reset();
     }
 
     Window& Window::setVsync(bool value)

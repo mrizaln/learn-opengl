@@ -2,6 +2,7 @@
 #define WINDOW_HPP_IROQWEOX
 
 #include <functional>
+#include <thread>
 #include <utility>
 #include <atomic>
 #include <queue>
@@ -105,8 +106,8 @@ namespace window
         double m_lastFrameTime{ 0.0 };
         double m_deltaTime{ 0.0 };
 
-        bool        m_captureMouse{ false };
-        std::size_t m_attachedThreadId;
+        bool                           m_captureMouse{ false };
+        std::optional<std::thread::id> m_attachedThreadId;
 
         mutable std::mutex m_windowMutex;
         mutable std::mutex m_queueMutex;
