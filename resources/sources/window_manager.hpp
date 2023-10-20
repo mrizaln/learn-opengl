@@ -78,11 +78,11 @@ namespace window
         inline static std::unique_ptr<WindowManager> s_instance{ nullptr };
 
         std::unordered_map<std::size_t, unique_GLFWwindow>        m_windows;
-        std::size_t                                               m_windowCount;
         std::queue<std::size_t>                                   m_windowDeleteQueue;
         std::queue<std::function<void()>>                         m_taskQueue;
         std::queue<std::pair<std::size_t, std::function<void()>>> m_windowTaskQueue;
 
+        std::size_t     m_windowCount{ 0 };
         std::thread::id m_attachedThreadId;
 
         std::mutex m_queueMutex;
