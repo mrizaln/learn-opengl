@@ -2,6 +2,7 @@
 #define WINDOW_HPP_IROQWEOX
 
 #include <functional>
+#include <optional>
 #include <thread>
 #include <utility>
 #include <atomic>
@@ -75,6 +76,8 @@ namespace window
         bool              isMouseCaptured() { return m_captureMouse; }
         WindowProperties& getProperties() { return m_properties; }
         GLFWwindow*       getHandle() const { return m_windowHandle; }
+
+        const std::optional<std::thread::id>& getAttachedThreadId() const { return m_attachedThreadId; };
 
     private:
         Window(std::size_t id, GLFWwindow* handle, WindowProperties&& prop);

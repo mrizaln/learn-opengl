@@ -29,6 +29,20 @@ namespace util
         ss >> threadId_num;
         return threadId_num;
     }
+
+    // helper function that decides whether to execute the task immediately or enqueue it.
+    void runTask(window::Window* windowPtr, std::function<void()>&& func)
+    {
+        // If the Window is attached to the same thread as the windowManager,
+        // execute the task immediately, else enqueue the task.
+        const auto& windowManager{ window::WindowManager::getInstance()->get() };
+        if (windowPtr->getAttachedThreadId() == windowManager.getAttachedThreadId()) {
+            func();
+            std::cout << "immediately executed\n";
+        } else {
+            windowPtr->enqueueTask(std::move(func));
+        }
+    }
 }
 
 namespace window
@@ -38,7 +52,7 @@ namespace window
         Window* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        windowWindow->enqueueTask([windowWindow, width, height] {
+        util::runTask(windowWindow, [windowWindow, width, height] {
             if (windowWindow->m_framebufferSize) {
                 windowWindow->m_framebufferSize(*windowWindow, width, height);
             }
@@ -51,7 +65,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        windowWindow->enqueueTask([windowWindow, key, action, mods] {
+        util::runTask(windowWindow, [windowWindow, key, action, mods] {
             auto& keyMap{ windowWindow->m_keyMap };
             auto  range{ keyMap.equal_range(key) };
             for (auto& [_, handler] : std::ranges::subrange(range.first, range.second)) {
@@ -71,7 +85,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        windowWindow->enqueueTask([windowWindow, xPos, yPos] {
+        util::runTask(windowWindow, [windowWindow, xPos, yPos] {
             if (windowWindow->m_cursorPosCallback) {
                 windowWindow->m_cursorPosCallback(*windowWindow, xPos, yPos);
             }
@@ -84,7 +98,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        windowWindow->enqueueTask([windowWindow, xOffset, yOffset] {
+        util::runTask(windowWindow, [windowWindow, xOffset, yOffset] {
             if (windowWindow->m_scrollCallback) {
                 windowWindow->m_scrollCallback(*windowWindow, xOffset, yOffset);
             }
