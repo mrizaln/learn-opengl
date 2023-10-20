@@ -41,9 +41,10 @@ namespace window
         // @thread_safety: call this function from the main thread only
         std::optional<Window> createWindow(const std::string& title, int width, int height);
 
-        // this function poll events for all windows.
+        // this function poll events for all windows and then sleep for specified time.
+        // won't sleep after polling events if `msPollRate` is `std::nullopt`.
         // @thread_safety: call this function from the main thread only
-        void pollEvents(std::chrono::milliseconds msPollRate);
+        void pollEvents(std::optional<std::chrono::milliseconds> msPollRate = {});
 
         // like pollEvents, but this function will block the thread until an event is received.
         // @thread_safety: call this function from the main thread only

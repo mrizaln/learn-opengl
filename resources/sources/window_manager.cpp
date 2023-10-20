@@ -61,11 +61,14 @@ namespace window
         }
     }
 
-    void WindowManager::pollEvents(std::chrono::milliseconds msPollRate)
+    void WindowManager::pollEvents(std::optional<std::chrono::milliseconds> msPollRate)
     {
         glfwPollEvents();
         checkTasks();
-        std::this_thread::sleep_for(msPollRate);
+
+        if (msPollRate) {
+            std::this_thread::sleep_for(*msPollRate);
+        }
     }
 
     void WindowManager::waitEvents()
