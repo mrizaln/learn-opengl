@@ -16,7 +16,7 @@ namespace window
     bool WindowManager::createInstance()
     {
         if (!s_instance) {
-            s_instance.reset(new WindowManager());
+            s_instance.reset(new WindowManager{ std::this_thread::get_id() });
             return true;
         }
         return true;
@@ -51,6 +51,13 @@ namespace window
         std::cout << std::format("INFO: [WindowManager] Window ({} | {:#x}) created\n", id, (std::size_t)windowHandle);
 
         return Window{ id, windowHandle, { .m_title = title, .m_width = width, .m_height = height } };
+    }
+
+    WindowManager::WindowManager(std::thread::id threadId)
+        : m_attachedThreadId{ threadId }
+    {
+        // yeah, that's it.
+        // attached thread id will not be changed for the lifetime of this class instance.
     }
 
     void WindowManager::requestDeleteWindow(std::size_t id)

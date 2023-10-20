@@ -7,6 +7,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <thread>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -29,12 +30,15 @@ namespace window
     {
     public:
         ~WindowManager()                               = default;
+        WindowManager()                                = delete;
         WindowManager(const WindowManager&)            = delete;
         WindowManager(WindowManager&&)                 = delete;
         WindowManager& operator=(const WindowManager&) = delete;
         WindowManager& operator=(WindowManager&&)      = delete;
 
-        static bool                                                 createInstance();
+        // the thread that call this function first will be regarded as the main thread.
+        static bool createInstance();
+
         static std::optional<std::reference_wrapper<WindowManager>> getInstance();
         static void                                                 destroyInstance();
 
@@ -64,8 +68,10 @@ namespace window
 
         bool hasWindowOpened();
 
+        const std::thread::id& getAttachedThreadId() const { return m_attachedThreadId; }
+
     private:
-        WindowManager() = default;
+        WindowManager(std::thread::id threadId);
 
         void checkTasks();
 
@@ -76,6 +82,8 @@ namespace window
         std::queue<std::size_t>                                   m_windowDeleteQueue;
         std::queue<std::function<void()>>                         m_taskQueue;
         std::queue<std::pair<std::size_t, std::function<void()>>> m_windowTaskQueue;
+
+        std::thread::id m_attachedThreadId;
 
         std::mutex m_queueMutex;
     };
