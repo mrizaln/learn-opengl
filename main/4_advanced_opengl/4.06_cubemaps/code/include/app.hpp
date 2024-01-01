@@ -56,6 +56,13 @@ public:
         return Task{ std::move(window) };
     }
 
+public:
+    ~Task()                      = default;
+    Task(const Task&)            = delete;
+    Task& operator=(const Task&) = delete;
+    Task(Task&&)                 = default;
+    Task& operator=(Task&&)      = default;
+
 private:
     Task(window::Window&& win)
         : m_window{ std::move(win) }
@@ -76,19 +83,10 @@ private:
         m_window->unUse();
     }
 
-    Task(const Task&) = delete;
-    Task(Task&&)      = default;
-
 public:
-    void addAttachment(std::function<void()>&& func)
-    {
-        m_attachmentFunc = std::move(func);
-    }
+    void addAttachment(std::function<void()>&& func) { m_attachmentFunc = std::move(func); }
 
-    void run()
-    {
-        m_thread = std::jthread{ m_threadFunc };
-    }
+    void run() { m_thread = std::jthread{ m_threadFunc }; }
 };
 
 class App
@@ -110,7 +108,9 @@ private:
 public:
     static void init() noexcept(false)
     {
-        if (s_instance) { return; }
+        if (s_instance) {
+            return;
+        }
 
         if (!glfwInit()) {
             throw std::runtime_error{ "Failed to initialize GLFW" };
@@ -130,7 +130,9 @@ public:
 
     static void run() noexcept(false)
     {
-        if (!s_instance) { throw std::runtime_error{ "No instance created" }; }
+        if (!s_instance) {
+            throw std::runtime_error{ "No instance created" };
+        }
 
         s_instance->run_impl();
     }
@@ -147,12 +149,12 @@ public:
 public:
     ~App() = default;
 
-private:
     App(const App&)            = delete;
     App(App&&)                 = delete;
     App& operator=(const App&) = delete;
     App& operator=(App&&)      = delete;
 
+private:
     App()
         : m_task1{ Task1::create("LearnOpenGL - Skybox") }
         , m_task2{ Task2::create("LearnOpenGL - Environment Mapping") }
@@ -172,9 +174,7 @@ private:
             m_task1.m_window->unUse();
         });
 
-        m_task1.addAttachment([this] {
-            m_imguiLayer.render();
-        });
+        m_task1.addAttachment([this] { m_imguiLayer.render(); });
     }
 
 private:
