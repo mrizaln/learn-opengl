@@ -15,7 +15,7 @@
 #include "window_manager.hpp"
 #include "scope_time_logger.hpp"
 
-namespace util
+namespace
 {
     // idk which is better, using hash or using stringstream to get numeric representation of the id
     std::size_t getThreadNum(const std::thread::id& threadId)
@@ -31,14 +31,13 @@ namespace util
     }
 
     // helper function that decides whether to execute the task immediately or enqueue it.
-    void runTask(window::Window* windowPtr, std::function<void()>&& func)
+    static inline void runTask(window::Window* windowPtr, std::function<void()>&& func)
     {
         // If the Window is attached to the same thread as the windowManager,
         // execute the task immediately, else enqueue the task.
         const auto& windowManager{ window::WindowManager::getInstance()->get() };
         if (windowPtr->getAttachedThreadId() == windowManager.getAttachedThreadId()) {
             func();
-            std::cout << "immediately executed\n";
         } else {
             windowPtr->enqueueTask(std::move(func));
         }
@@ -52,7 +51,7 @@ namespace window
         Window* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        util::runTask(windowWindow, [windowWindow, width, height] {
+        runTask(windowWindow, [windowWindow, width, height] {
             if (windowWindow->m_framebufferSize) {
                 windowWindow->m_framebufferSize(*windowWindow, width, height);
             }
@@ -65,7 +64,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        util::runTask(windowWindow, [windowWindow, key, action, mods] {
+        runTask(windowWindow, [windowWindow, key, action, mods] {
             auto& keyMap{ windowWindow->m_keyMap };
             auto  range{ keyMap.equal_range(key) };
             for (auto& [_, handler] : std::ranges::subrange(range.first, range.second)) {
@@ -85,7 +84,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        util::runTask(windowWindow, [windowWindow, xPos, yPos] {
+        runTask(windowWindow, [windowWindow, xPos, yPos] {
             if (windowWindow->m_cursorPosCallback) {
                 windowWindow->m_cursorPosCallback(*windowWindow, xPos, yPos);
             }
@@ -98,7 +97,7 @@ namespace window
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
         if (windowWindow == nullptr) { return; }
 
-        util::runTask(windowWindow, [windowWindow, xOffset, yOffset] {
+        runTask(windowWindow, [windowWindow, xOffset, yOffset] {
             if (windowWindow->m_scrollCallback) {
                 windowWindow->m_scrollCallback(*windowWindow, xOffset, yOffset);
             }
@@ -149,6 +148,32 @@ namespace window
         other.m_scrollCallback    = nullptr;
     }
 
+    Window& Window::operator=(Window&& other)
+    {
+        if (this != &other) {
+            m_id                 = other.m_id;
+            m_contextInitialized = other.m_contextInitialized;
+            m_windowHandle       = other.m_windowHandle;
+            m_properties         = std::move(other.m_properties);
+            m_vsync              = other.m_vsync;
+            m_keyMap             = std::move(other.m_keyMap);
+            m_cursorPosCallback  = std::move(other.m_cursorPosCallback);
+            m_scrollCallback     = std::move(other.m_scrollCallback);
+            m_taskQueue          = std::move(other.m_taskQueue);
+            m_lastFrameTime      = other.m_lastFrameTime;
+            m_deltaTime          = other.m_deltaTime;
+            m_attachedThreadId   = other.m_attachedThreadId;
+
+            glfwSetWindowUserPointer(m_windowHandle, this);
+            other.m_id                = 0;
+            other.m_windowHandle      = nullptr;
+            other.m_keyMap            = {};
+            other.m_cursorPosCallback = nullptr;
+            other.m_scrollCallback    = nullptr;
+        }
+        return *this;
+    }
+
     Window::~Window()
     {
         if (m_windowHandle != nullptr && m_id != 0) {
@@ -172,7 +197,7 @@ namespace window
                 "INFO: [Window] Context ({} | {:#x}) attached (+) [thread: {:#x}]\n",
                 m_id,
                 (std::size_t)m_windowHandle,
-                util::getThreadNum(*m_attachedThreadId)
+                getThreadNum(*m_attachedThreadId)
             );
 
             glfwMakeContextCurrent(m_windowHandle);
@@ -188,8 +213,8 @@ namespace window
                 "WARNING: [Window] Context ({} | {:#x}) already attached to another thread [{:#x}], cannot attach to this thread [{:#x}].\n",
                 m_id,
                 (std::size_t)m_windowHandle,
-                util::getThreadNum(*m_attachedThreadId),
-                util::getThreadNum(std::this_thread::get_id())
+                getThreadNum(*m_attachedThreadId),
+                getThreadNum(std::this_thread::get_id())
             );
 
             assert(false && "Context already attached to another thread");
@@ -204,7 +229,7 @@ namespace window
                 "INFO: [Window] Context ({} | {:#x}) detached (-) [thread: {:#x}]\n",
                 m_id,
                 (std::size_t)m_windowHandle,
-                util::getThreadNum(*m_attachedThreadId)
+                getThreadNum(*m_attachedThreadId)
             );
         }
 

@@ -48,8 +48,10 @@ namespace window
         using ScrollCallbackFun          = std::function<void(Window& window, double xOffset, double yOffset)>;
         using FramebufferSizeCallbackFun = std::function<void(Window& window, int width, int height)>;
 
-        Window(const Window&) = delete;
+        Window(const Window&)           = delete;
+        Window operator=(const Window&) = delete;
         Window(Window&&);
+        Window& operator=(Window&&);
         ~Window();
 
         // use the context on current thread;
