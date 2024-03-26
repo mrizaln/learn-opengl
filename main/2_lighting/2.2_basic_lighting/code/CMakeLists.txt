@@ -7,19 +7,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(LearnOpenGL)
 
 find_package(glfw3 REQUIRED)
-find_package(glbinding REQUIRED PATHS ./lib/glbinding)
+find_package(glbinding REQUIRED)
+find_package(glm REQUIRED)
+find_package(stb REQUIRED)
 
 set(MAIN_EXE main)
 add_executable(${MAIN_EXE} main.cpp)
-
-target_include_directories(${MAIN_EXE} PUBLIC
-    ./include
-)
-
-target_link_libraries(${MAIN_EXE} PUBLIC
-    glfw
-    glbinding::glbinding
-)
+target_include_directories(${MAIN_EXE} PUBLIC ./include)
+target_link_libraries(${MAIN_EXE} PUBLIC glfw glbinding::glbinding glm::glm stb::stb)
 
 # copy assets to build directory
 add_custom_command(

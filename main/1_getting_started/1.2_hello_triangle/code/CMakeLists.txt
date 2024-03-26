@@ -7,12 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project(LearnOpenGL)
 
 find_package(glfw3 REQUIRED)
-find_package(glbinding REQUIRED PATHS ./lib/glbinding)
+find_package(glbinding REQUIRED)
 
 set(MAIN_EXE main)
 add_executable(${MAIN_EXE} main.cpp)
-
-target_link_libraries(${MAIN_EXE} PUBLIC
-    glfw
-    glbinding::glbinding
-)
+target_link_libraries(${MAIN_EXE} PUBLIC glfw glbinding::glbinding)

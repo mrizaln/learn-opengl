@@ -6,15 +6,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(ENABLE_SANTIZER OFF CACHE BOOL "Enable sanitizer")
 
-project(glbinding_test)
+project(LearnOpenGL)
 
 find_package(glfw3 REQUIRED)
-find_package(glbinding REQUIRED PATHS ./lib/glbinding)
+find_package(glbinding REQUIRED)
+find_package(glm REQUIRED)
+find_package(stb REQUIRED)
 
-include_directories(
-    ./src
-    ./include
-)
 
 if (ENABLE_SANTIZER)
     add_compile_options(-fsanitize=address)
@@ -29,12 +27,10 @@ endif()
 
 set(MAIN_EXE main)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_executable(${MAIN_EXE} ${SOURCES})
 
-target_link_libraries(${MAIN_EXE} PUBLIC
-    glfw
-    glbinding::glbinding
-)
+add_executable(${MAIN_EXE} ${SOURCES})
+target_include_directories(${MAIN_EXE} PRIVATE ./include)
+target_link_libraries(${MAIN_EXE} PRIVATE glfw glbinding::glbinding glm::glm stb::stb)
 
 # copy assets to build directory
 add_custom_command(

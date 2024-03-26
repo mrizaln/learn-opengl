@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "/home/mrizaln/Projects/C++/learn-opengl/main/4_advanced_opengl/4.03_blending/code/build/debug/conan/CMakePresets.json"
+    ]
+}

@@ -1,6 +1,0 @@
-[submodule "resources/lib/glbinding"]
-	path = resources/lib/glbinding
-	url = git@github.com:cginternals/glbinding.git
-[submodule "resources/lib/imgui"]
-	path = resources/lib/imgui
-	url = git@github.com:ocornut/imgui.git
