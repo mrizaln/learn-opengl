@@ -30,7 +30,7 @@ message(${IMGUI_BINDINGS_INCLUDE_DIR})
 
 add_library(imgui_backend_glfw OBJECT ${IMGUI_BINDINGS})
 target_include_directories(imgui_backend_glfw PUBLIC ${IMGUI_BINDINGS_INCLUDE_DIR})
-target_link_libraries(imgui_backend_glfw PRIVATE imgui::imgui)
+target_link_libraries(imgui_backend_glfw PRIVATE imgui::imgui glfw)
 # ---------------------------
 
 if (ENABLE_SANTIZER)
