@@ -14,7 +14,8 @@
 
 namespace window
 {
-    using unique_GLFWwindow = std::unique_ptr<GLFWwindow, decltype([](GLFWwindow* win) { glfwDestroyWindow(win); })>;
+    using unique_GLFWwindow
+        = std::unique_ptr<GLFWwindow, decltype([](GLFWwindow* win) { glfwDestroyWindow(win); })>;
 
     // turns fps to milliseconds
     inline std::chrono::milliseconds operator""_fps(unsigned long long fps)

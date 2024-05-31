@@ -46,7 +46,8 @@ public:
 
         bool empty() const
         {
-            return right.empty() || left.empty() || top.empty() || bottom.empty() || back.empty() || front.empty();
+            return right.empty() || left.empty() || top.empty() || bottom.empty() || back.empty()
+                || front.empty();
         }
 
         const std::filesystem::path& get(Face face) const
@@ -67,7 +68,11 @@ private:
     CubeImagePath m_imagePaths;
 
 public:
-    static std::optional<Cubemap> from(CubeImagePath&& imagePaths, const std::string& uniformName, gl::GLint textureUnitNum)
+    static std::optional<Cubemap> from(
+        CubeImagePath&&    imagePaths,
+        const std::string& uniformName,
+        gl::GLint          textureUnitNum
+    )
     {
         if (imagePaths.empty()) {
             return {};
@@ -79,7 +84,8 @@ public:
         imageDatas.reserve(s_numFaces);
 
         for (Int face{ 0 }; face < static_cast<Int>(s_numFaces); ++face) {
-            // the image is flipped vertically by the opengl on the cubemap, so we don't need to flip it on load
+            // the image is flipped vertically by the opengl on the cubemap, so we don't need to flip it on
+            // load
             auto maybeImageData{ ImageData::from(imagePaths.get(static_cast<Face>(face)), false) };
             if (!maybeImageData) {
                 return {};
@@ -99,15 +105,9 @@ public:
         other.m_id = 0;
     }
 
-    const CubeImagePath& getImagePaths() const
-    {
-        return m_imagePaths;
-    }
+    const CubeImagePath& getImagePaths() const { return m_imagePaths; }
 
-    const std::filesystem::path& getImagePath(Face face) const
-    {
-        return m_imagePaths.get(face);
-    }
+    const std::filesystem::path& getImagePath(Face face) const { return m_imagePaths.get(face); }
 
 private:
     Cubemap(
@@ -135,15 +135,47 @@ private:
             gl::GLenum texFace{ gl::GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<Int>(face) };
 
             if (imageData.m_nrChannels == 4) {
-                gl::glTexImage2D(texFace, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, imageData.m_data);
+                gl::glTexImage2D(
+                    texFace,
+                    0,
+                    gl::GL_RGBA,
+                    imageData.m_width,
+                    imageData.m_height,
+                    0,
+                    gl::GL_RGBA,
+                    gl::GL_UNSIGNED_BYTE,
+                    imageData.m_data
+                );
             } else if (imageData.m_nrChannels == 3) {
-                gl::glTexImage2D(texFace, 0, gl::GL_RGB, imageData.m_width, imageData.m_height, 0, gl::GL_RGB, gl::GL_UNSIGNED_BYTE, imageData.m_data);
+                gl::glTexImage2D(
+                    texFace,
+                    0,
+                    gl::GL_RGB,
+                    imageData.m_width,
+                    imageData.m_height,
+                    0,
+                    gl::GL_RGB,
+                    gl::GL_UNSIGNED_BYTE,
+                    imageData.m_data
+                );
             } else {
                 // pad data if not rgb or rgba
                 auto newData{ ImageData::addPadding(imageData) };
-                gl::glTexImage2D(texFace, 0, gl::GL_RGBA, imageData.m_width, imageData.m_height, 0, gl::GL_RGBA, gl::GL_UNSIGNED_BYTE, &newData.front());
+                gl::glTexImage2D(
+                    texFace,
+                    0,
+                    gl::GL_RGBA,
+                    imageData.m_width,
+                    imageData.m_height,
+                    0,
+                    gl::GL_RGBA,
+                    gl::GL_UNSIGNED_BYTE,
+                    &newData.front()
+                );
             }
         }
+
+        gl::glBindTexture(m_target, 0);
     }
 };
 

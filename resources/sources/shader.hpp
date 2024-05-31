@@ -16,12 +16,10 @@
 #include <glm/glm.hpp>
 
 template <typename GLtype>
-concept UniformValueType = ((std::same_as<GLtype, gl::GLfloat>
-                             || std::same_as<GLtype, gl::GLdouble>
-                             || std::same_as<GLtype, gl::GLint>
-                             || std::same_as<GLtype, gl::GLuint>
+concept UniformValueType = ((std::same_as<GLtype, gl::GLfloat> || std::same_as<GLtype, gl::GLdouble>
+                             || std::same_as<GLtype, gl::GLint> || std::same_as<GLtype, gl::GLuint>
                              || std::same_as<GLtype, bool>))
-                           && std::is_fundamental_v<GLtype>;
+                        && std::is_fundamental_v<GLtype>;
 
 template <typename Float>
 concept UniformMatType = std::same_as<Float, gl::GLfloat> || std::same_as<Float, gl::GLdouble>;
@@ -94,26 +92,24 @@ public:
         // link shaders to shader program
         gl::glAttachShader(m_id, vsId);
         gl::glAttachShader(m_id, fsId);
-        if (gsId) { gl::glAttachShader(m_id, gsId.value()); }
+        if (gsId) {
+            gl::glAttachShader(m_id, gsId.value());
+        }
         gl::glLinkProgram(m_id);
         shaderLinkInfo(m_id);
 
         // delete shader objects
         gl::glDeleteShader(vsId);
         gl::glDeleteShader(fsId);
-        if (gsId) { gl::glDeleteShader(gsId.value()); }
+        if (gsId) {
+            gl::glDeleteShader(gsId.value());
+        }
     }
 
-    ~Shader()
-    {
-        gl::glDeleteProgram(m_id);
-    }
+    ~Shader() { gl::glDeleteProgram(m_id); }
 
 public:
-    void use()
-    {
-        gl::glUseProgram(m_id);
-    }
+    void use() { gl::glUseProgram(m_id); }
 
     // glm vector
     // clang-format off
@@ -177,7 +173,9 @@ private:
         } else {
             gl::GLint loc{ gl::glGetUniformLocation(m_id, name.c_str()) };
             if (loc == -1) {
-                std::cerr << std::format("WARNING: [Shader] [{}]: Uniform of name '{}' can't be found\n", m_id, name);
+                std::cerr << std::format(
+                    "WARNING: [Shader] [{}]: Uniform of name '{}' can't be found\n", m_id, name
+                );
             }
             m_uniformLocHistory.emplace(name, loc);
             return loc;
@@ -218,8 +216,7 @@ private:
             glGetProgramiv(program, gl::GL_INFO_LOG_LENGTH, &maxLength);
             auto log{ new gl::GLchar[(std::size_t)maxLength] };
             gl::glGetProgramInfoLog(program, maxLength, &logLength, log);
-            std::cerr << "Program linking failed: \n"
-                      << log << '\n';
+            std::cerr << "Program linking failed: \n" << log << '\n';
             delete[] log;
         }
     }

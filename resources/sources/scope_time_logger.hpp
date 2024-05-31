@@ -86,6 +86,11 @@ namespace util
                 }
             }
 
+            Inserter(const Inserter&)            = delete;
+            Inserter(Inserter&&)                 = delete;
+            Inserter& operator=(const Inserter&) = delete;
+            Inserter& operator=(Inserter&&)      = delete;
+
             second_type::rep currentTime()
             {
                 return std::chrono::duration_cast<second_type>(clock_type::now() - m_beginning).count();

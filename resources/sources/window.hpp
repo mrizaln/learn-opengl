@@ -44,8 +44,8 @@ namespace window
         };
         using KeyMap = std::unordered_multimap<KeyEvent, KeyEventHandler>;
 
-        using CursorPosCallbackFun       = std::function<void(Window& window, double xPos, double yPos)>;
-        using ScrollCallbackFun          = std::function<void(Window& window, double xOffset, double yOffset)>;
+        using CursorPosCallbackFun = std::function<void(Window& window, double xPos, double yPos)>;
+        using ScrollCallbackFun    = std::function<void(Window& window, double xOffset, double yOffset)>;
         using FramebufferSizeCallbackFun = std::function<void(Window& window, int width, int height)>;
 
         Window(const Window&)           = delete;
@@ -71,8 +71,18 @@ namespace window
         Window& setFramebuffersizeCallback(FramebufferSizeCallbackFun&& func);
 
         // The function added will be called from the window thread.
-        Window& addKeyEventHandler(KeyEvent key, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func);
-        Window& addKeyEventHandler(std::initializer_list<KeyEvent> keys, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func);
+        Window& addKeyEventHandler(
+            KeyEvent                       key,
+            KeyModifier                    mods,
+            KeyActionType                  action,
+            std::function<void(Window&)>&& func
+        );
+        Window& addKeyEventHandler(
+            std::initializer_list<KeyEvent> keys,
+            KeyModifier                     mods,
+            KeyActionType                   action,
+            std::function<void(Window&)>&&  func
+        );
 
         bool              isVsyncEnabled() { return m_vsync; }
         bool              isMouseCaptured() { return m_captureMouse; }
@@ -94,7 +104,7 @@ namespace window
         void updateDeltaTime();
 
         // window stuff
-        std::size_t      m_id;    // imagine this is the context handle (GLFW use the same handle for the window and the context)
+        std::size_t      m_id;
         bool             m_contextInitialized{ false };
         GLFWwindow*      m_windowHandle;
         WindowProperties m_properties;

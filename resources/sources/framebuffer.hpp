@@ -127,15 +127,9 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void bind() const
-    {
-        gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, m_fbo);
-    }
+    void bind() const { gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, m_fbo); }
 
-    void unbind() const
-    {
-        gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0);
-    }
+    void unbind() const { gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0); }
 
     void use(std::function<void()>&& func) const
     {
@@ -144,10 +138,7 @@ public:
         unbind();
     }
 
-    void bindTexture() const
-    {
-        gl::glBindTexture(gl::GL_TEXTURE_2D, m_tex);
-    }
+    void bindTexture() const { gl::glBindTexture(gl::GL_TEXTURE_2D, m_tex); }
 };
 
 #endif /* end of include guard: FRAMEBUFFER_HPP_UKRHGFNS */

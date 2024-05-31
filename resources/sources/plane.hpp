@@ -74,7 +74,7 @@ public:
     {
         for (std::size_t i{ 0 }; i < NUM_OF_VERTICES; ++i) {
             m_vertices[i] = {
-                .m_position = s_planeVertices[i] * m_sideLength / 2.0f,    // divide by 2.0f since the s_cubeVertices side length is 2.0f
+                .m_position = s_planeVertices[i] * m_sideLength / 2.0f,
                 .m_normal   = s_planeNormals[i],
                 .m_texCoord = s_planeTexCoords[i],
             };
@@ -83,10 +83,7 @@ public:
         setBuffers();
     }
 
-    ~Plane()
-    {
-        deleteBuffers();
-    }
+    ~Plane() { deleteBuffers(); }
 
     void draw() const
     {
@@ -105,11 +102,37 @@ private:
 
         gl::glBindVertexArray(m_vao);
         gl::glBindBuffer(gl::GL_ARRAY_BUFFER, m_vbo);
-        gl::glBufferData(gl::GL_ARRAY_BUFFER, static_cast<gl::GLsizeiptr>(m_vertices.size() * stride), &m_vertices.front(), gl::GL_STATIC_DRAW);
+        gl::glBufferData(
+            gl::GL_ARRAY_BUFFER,
+            static_cast<gl::GLsizeiptr>(m_vertices.size() * stride),
+            &m_vertices.front(),
+            gl::GL_STATIC_DRAW
+        );
 
-        gl::glVertexAttribPointer(0, decltype(VertexData::m_position)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)offsetof(VertexData, m_position));
-        gl::glVertexAttribPointer(1, decltype(VertexData::m_normal)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)offsetof(VertexData, m_normal));
-        gl::glVertexAttribPointer(2, decltype(VertexData::m_texCoord)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)offsetof(VertexData, m_texCoord));
+        gl::glVertexAttribPointer(
+            0,
+            decltype(VertexData::m_position)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)offsetof(VertexData, m_position)
+        );
+        gl::glVertexAttribPointer(
+            1,
+            decltype(VertexData::m_normal)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)offsetof(VertexData, m_normal)
+        );
+        gl::glVertexAttribPointer(
+            2,
+            decltype(VertexData::m_texCoord)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)offsetof(VertexData, m_texCoord)
+        );
         gl::glEnableVertexAttribArray(0);
         gl::glEnableVertexAttribArray(1);
         gl::glEnableVertexAttribArray(2);

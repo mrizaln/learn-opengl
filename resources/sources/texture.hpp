@@ -66,7 +66,8 @@ public:
     // pad data to 4 channels
     static std::vector<std::array<unsigned char, 4>> addPadding(const ImageData& data)
     {
-        std::vector<std::array<unsigned char, 4>> newData(std::size_t(data.m_width * data.m_height));    // default initialize
+        std::vector<std::array<unsigned char, 4>> newData(std::size_t(data.m_width * data.m_height)
+        );    // default initialize
         for (std::size_t i{ 0 }; i < newData.size(); ++i) {
             auto& byte{ newData[i] };
             for (int channel{ 0 }; channel < data.m_nrChannels; ++channel) {
@@ -110,25 +111,13 @@ protected:
 public:
     virtual ~Texture() = 0;    // so that the class can't be instantiated
 
-    gl::GLuint getId() const
-    {
-        return m_id;
-    }
+    gl::GLuint getId() const { return m_id; }
 
-    gl::GLint getUnitNum() const
-    {
-        return m_unitNum;
-    }
+    gl::GLint getUnitNum() const { return m_unitNum; }
 
-    const std::string& getUniformName() const
-    {
-        return m_uniformName;
-    }
+    const std::string& getUniformName() const { return m_uniformName; }
 
-    void setUniformName(const std::string& name)
-    {
-        m_uniformName = name;
-    }
+    void setUniformName(const std::string& name) { m_uniformName = name; }
 
     void activate(Shader& shader) const
     {

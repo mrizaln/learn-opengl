@@ -48,7 +48,9 @@ namespace window
         std::size_t id{ ++m_windowCount };
         m_windows.emplace(id, std::move(glfwWindow));
 
-        std::cout << std::format("INFO: [WindowManager] Window ({} | {:#x}) created\n", id, (std::size_t)windowHandle);
+        std::cout << std::format(
+            "INFO: [WindowManager] Window ({} | {:#x}) created\n", id, (std::size_t)windowHandle
+        );
 
         return Window{ id, windowHandle, { .m_title = title, .m_width = width, .m_height = height } };
     }
@@ -114,7 +116,11 @@ namespace window
             if (found == m_windows.end()) {
                 continue;
             }
-            std::cout << std::format("INFO: [WindowManager] Window ({} | {:#x}) deleted\n", found->first, (std::size_t)found->second.get());
+            std::cout << std::format(
+                "INFO: [WindowManager] Window ({} | {:#x}) deleted\n",
+                found->first,
+                (std::size_t)found->second.get()
+            );
             m_windows.erase(found);
         }
 
@@ -125,7 +131,9 @@ namespace window
             if (m_windows.contains(id)) {
                 fun();
             } else {
-                std::cout << std::format("WARNING: [WindowManager] Task for window {} failed: window has destroyed\n", id);
+                std::cout << std::format(
+                    "WARNING: [WindowManager] Task for window {} failed: window has destroyed\n", id
+                );
             }
         }
 

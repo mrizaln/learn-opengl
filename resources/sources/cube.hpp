@@ -197,10 +197,7 @@ public:
     }
 
     // cube destructor must be done before glfwTerminate() is called else it will cause a segmentation fault
-    ~Cube()
-    {
-        deleteBuffers();
-    }
+    ~Cube() { deleteBuffers(); }
 
     void draw() const
     {
@@ -217,10 +214,10 @@ public:
 
     void print() const
     {
-        for (const auto& vertex : m_vertices) {
-            std::cout << std::format("position: ({}, {}, {})\n", vertex.m_position.x, vertex.m_position.y, vertex.m_position.z)
-                      << std::format("normal: ({}, {}, {})\n", vertex.m_normal.x, vertex.m_normal.y, vertex.m_normal.z)
-                      << std::format("texCoord: ({}, {})\n", vertex.m_texCoord.x, vertex.m_texCoord.y)
+        for (const auto& [pos, norm, tex] : m_vertices) {
+            std::cout << std::format("position: ({}, {}, {})\n", pos.x, pos.y, pos.z)
+                      << std::format("normal: ({}, {}, {})\n", norm.x, norm.y, norm.z)
+                      << std::format("texCoord: ({}, {})\n", tex.x, tex.y)    //
                       << '\n';
         }
     }
@@ -235,14 +232,40 @@ private:
         //----
         gl::glBindVertexArray(m_vao);
         gl::glBindBuffer(gl::GL_ARRAY_BUFFER, m_vbo);
-        gl::glBufferData(gl::GL_ARRAY_BUFFER, static_cast<gl::GLsizei>(sizeof(VertexData) * m_vertices.size()), &m_vertices.front(), gl::GL_STATIC_DRAW);
+        gl::glBufferData(
+            gl::GL_ARRAY_BUFFER,
+            static_cast<gl::GLsizei>(sizeof(VertexData) * m_vertices.size()),
+            &m_vertices.front(),
+            gl::GL_STATIC_DRAW
+        );
 
         // vertex attribute
         //-----------------
         auto stride{ static_cast<gl::GLsizei>(sizeof(VertexData)) };
-        gl::glVertexAttribPointer(0, decltype(VertexData::m_position)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)(offsetof(VertexData, m_position)));
-        gl::glVertexAttribPointer(1, decltype(VertexData::m_normal)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)(offsetof(VertexData, m_normal)));
-        gl::glVertexAttribPointer(2, decltype(VertexData::m_texCoord)::length(), gl::GL_FLOAT, gl::GL_FALSE, stride, (void*)(offsetof(VertexData, m_texCoord)));
+        gl::glVertexAttribPointer(
+            0,
+            decltype(VertexData::m_position)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)(offsetof(VertexData, m_position))
+        );
+        gl::glVertexAttribPointer(
+            1,
+            decltype(VertexData::m_normal)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)(offsetof(VertexData, m_normal))
+        );
+        gl::glVertexAttribPointer(
+            2,
+            decltype(VertexData::m_texCoord)::length(),
+            gl::GL_FLOAT,
+            gl::GL_FALSE,
+            stride,
+            (void*)(offsetof(VertexData, m_texCoord))
+        );
         gl::glEnableVertexAttribArray(0);
         gl::glEnableVertexAttribArray(1);
         gl::glEnableVertexAttribArray(2);

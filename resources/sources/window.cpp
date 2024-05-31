@@ -49,7 +49,9 @@ namespace window
     void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
     {
         Window* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
-        if (windowWindow == nullptr) { return; }
+        if (windowWindow == nullptr) {
+            return;
+        }
 
         runTask(windowWindow, [windowWindow, width, height] {
             if (windowWindow->m_framebufferSize) {
@@ -62,15 +64,21 @@ namespace window
     void Window::keyCallback(GLFWwindow* window, int key, int /* scancode */, int action, int mods)
     {
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
-        if (windowWindow == nullptr) { return; }
+        if (windowWindow == nullptr) {
+            return;
+        }
 
         runTask(windowWindow, [windowWindow, key, action, mods] {
             auto& keyMap{ windowWindow->m_keyMap };
             auto  range{ keyMap.equal_range(key) };
             for (auto& [_, handler] : std::ranges::subrange(range.first, range.second)) {
                 auto& [hmod, haction, hfun]{ handler };
-                if (haction != KeyActionType::CALLBACK) { continue; }
-                if (action == GLFW_RELEASE | action == GLFW_REPEAT) { continue; }    // ignore release and repeat event for now
+                if (haction != KeyActionType::CALLBACK) {
+                    continue;
+                }
+                if (action == GLFW_RELEASE | action == GLFW_REPEAT) {
+                    continue;
+                }    // ignore release and repeat event for now
 
                 if (mods & hmod || hmod == 0) {    // modifier match or don't have any modifier
                     hfun(*windowWindow);
@@ -82,7 +90,9 @@ namespace window
     void Window::cursorPosCallback(GLFWwindow* window, double xPos, double yPos)
     {
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
-        if (windowWindow == nullptr) { return; }
+        if (windowWindow == nullptr) {
+            return;
+        }
 
         runTask(windowWindow, [windowWindow, xPos, yPos] {
             if (windowWindow->m_cursorPosCallback) {
@@ -95,7 +105,9 @@ namespace window
     void Window::scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
     {
         auto* windowWindow{ static_cast<Window*>(glfwGetWindowUserPointer(window)) };
-        if (windowWindow == nullptr) { return; }
+        if (windowWindow == nullptr) {
+            return;
+        }
 
         runTask(windowWindow, [windowWindow, xOffset, yOffset] {
             if (windowWindow->m_scrollCallback) {
@@ -113,7 +125,9 @@ namespace window
     {
         useHere();
         if (!m_contextInitialized) {
-            glbinding::initialize(static_cast<glbinding::ContextHandle>(m_id), glfwGetProcAddress, true);    // only resolve functions that are actually used (lazy)
+            glbinding::initialize(
+                static_cast<glbinding::ContextHandle>(m_id), glfwGetProcAddress, true
+            );    // only resolve functions that are actually used (lazy)
             m_contextInitialized = true;
 
             glfwSetFramebufferSizeCallback(m_windowHandle, Window::framebufferSizeCallback);
@@ -210,7 +224,8 @@ namespace window
             // different thread, cannot attach
 
             std::cout << std::format(
-                "WARNING: [Window] Context ({} | {:#x}) already attached to another thread [{:#x}], cannot attach to this thread [{:#x}].\n",
+                "WARNING: [Window] Context ({} | {:#x}) already attached to another thread "
+                "[{:#x}], cannot attach to this thread [{:#x}].\n",
                 m_id,
                 (std::size_t)m_windowHandle,
                 getThreadNum(*m_attachedThreadId),
@@ -239,7 +254,8 @@ namespace window
     Window& Window::setVsync(bool value)
     {
         m_vsync = value;
-        glfwSwapInterval(value);    // 0 for immediate updates, 1 for updates synchronized with the vertical retrace
+        glfwSwapInterval(value
+        );    // 0 for immediate updates, 1 for updates synchronized with the vertical retrace
         return *this;
     }
 
@@ -281,7 +297,9 @@ namespace window
     void Window::requestClose()
     {
         glfwSetWindowShouldClose(m_windowHandle, true);
-        std::cout << std::format("INFO: [Window] Window ({} | {:#x}) requested to close\n", m_id, (std::size_t)m_windowHandle);
+        std::cout << std::format(
+            "INFO: [Window] Window ({} | {:#x}) requested to close\n", m_id, (std::size_t)m_windowHandle
+        );
     }
 
     double Window::getDeltaTime()
@@ -295,7 +313,9 @@ namespace window
         auto& windowManager{ WindowManager::getInstance()->get() };
         windowManager.enqueueTask([this] {
             if (m_captureMouse) {
-                glfwGetCursorPos(m_windowHandle, &m_properties.m_cursorPos.x, &m_properties.m_cursorPos.y);    // prevent sudden jump when cursor first captured
+                glfwGetCursorPos(
+                    m_windowHandle, &m_properties.m_cursorPos.x, &m_properties.m_cursorPos.y
+                );    // prevent sudden jump when cursor first captured
                 glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             } else {
                 glfwSetInputMode(m_windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -322,13 +342,23 @@ namespace window
         return *this;
     }
 
-    Window& Window::addKeyEventHandler(KeyEvent key, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func)
+    Window& Window::addKeyEventHandler(
+        KeyEvent                       key,
+        KeyModifier                    mods,
+        KeyActionType                  action,
+        std::function<void(Window&)>&& func
+    )
     {
         m_keyMap.emplace(key, KeyEventHandler{ .mods = mods, .action = action, .handler = func });
         return *this;
     }
 
-    Window& Window::addKeyEventHandler(std::initializer_list<KeyEvent> keys, KeyModifier mods, KeyActionType action, std::function<void(Window&)>&& func)
+    Window& Window::addKeyEventHandler(
+        std::initializer_list<KeyEvent> keys,
+        KeyModifier                     mods,
+        KeyActionType                   action,
+        std::function<void(Window&)>&&  func
+    )
     {
         for (auto key : keys) {
             m_keyMap.emplace(key, KeyEventHandler{ .mods = mods, .action = action, .handler = func });
@@ -340,7 +370,8 @@ namespace window
     {
         PRETTY_FUNCTION_TIME_LOG();
 
-        // TODO: move this part to 'main thread' (glfwGetKey must be called from main thread [for now it's okay, idk why tho])
+        // TODO: move this part to 'main thread' (glfwGetKey must be called from main thread [for
+        // now it's okay, idk why tho])
         const auto getMods = [win = m_windowHandle] {
             int mods{ 0 };
             mods |= glfwGetKey(win, GLFW_KEY_LEFT_SHIFT) & GLFW_MOD_SHIFT;
@@ -359,8 +390,12 @@ namespace window
         // continuous key input
         for (auto& [key, handler] : m_keyMap) {
             auto& [hmod, haction, hfun]{ handler };
-            if (haction != KeyActionType::CONTINUOUS) { continue; }
-            if (glfwGetKey(m_windowHandle, key) != GLFW_PRESS) { continue; }
+            if (haction != KeyActionType::CONTINUOUS) {
+                continue;
+            }
+            if (glfwGetKey(m_windowHandle, key) != GLFW_PRESS) {
+                continue;
+            }
 
             if (mods & hmod || hmod == 0) {    // modifier match or don't have any modifier
                 hfun(*this);

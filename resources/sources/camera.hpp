@@ -77,18 +77,12 @@ public:
     }
 
     // return view matrix
-    glm::mat4 getViewMatrix()
-    {
-        return glm::lookAt(m_position, m_position + m_front, m_up);
-    }
+    glm::mat4 getViewMatrix() { return glm::lookAt(m_position, m_position + m_front, m_up); }
 
     glm::mat4 getProjectionMatrix(int width, int height)
     {
         return glm::perspective(
-            glm::radians(m_fov),
-            static_cast<float>(width) / static_cast<float>(height),
-            m_near,
-            m_far
+            glm::radians(m_fov), static_cast<float>(width) / static_cast<float>(height), m_near, m_far
         );
     }
 
@@ -114,20 +108,11 @@ public:
                 m_position -= m_front * m_speed * deltaTime;
             }
             break;
-        case Movement::RIGHT:
-            m_position += m_right * m_speed * deltaTime;
-            break;
-        case Movement::LEFT:
-            m_position -= m_right * m_speed * deltaTime;
-            break;
-        case Movement::UPWARD:
-            m_position += m_worldUp * m_speed * deltaTime;
-            break;
-        case Movement::DOWNWARD:
-            m_position -= m_worldUp * m_speed * deltaTime;
-            break;
-        default:
-            break;
+        case Movement::RIGHT: m_position += m_right * m_speed * deltaTime; break;
+        case Movement::LEFT: m_position -= m_right * m_speed * deltaTime; break;
+        case Movement::UPWARD: m_position += m_worldUp * m_speed * deltaTime; break;
+        case Movement::DOWNWARD: m_position -= m_worldUp * m_speed * deltaTime; break;
+        default: break;
         }
     }
 
@@ -155,16 +140,18 @@ public:
     {
         using namespace std::numbers;
 
-        const auto& direction{ -m_position };    // direction of camera = origin - camera.position; origin at (0,0,0)
+        const auto& direction{ -m_position };    // direction of camera = origin - camera.position;
+                                                 // origin at (0,0,0)
 
         m_yaw = 180.0f / pi_v<float> * std::atan(direction.z / direction.x);    // returns -90 to 90
 
         // for some reason direction.x < 0 doesn't work, we need to add some error (in this case 1e-5)
-        if (direction.x < 1e-5f) {    // fix direction flipped when camera front reset to origin when it already points to origin
+        if (direction.x < 1e-5f) {    // handle condition when camera already looked at origin
             m_yaw += 180.0f;
         }
 
-        m_pitch = 180.0f / pi_v<float> * std::atan(direction.y / std::sqrt(direction.x * direction.x + direction.z * direction.z));
+        m_pitch = 180.0f / pi_v<float>
+                * std::atan(direction.y / std::sqrt(direction.x * direction.x + direction.z * direction.z));
 
         updateCameraVector();
     }
@@ -182,7 +169,8 @@ private:
         m_right = glm::normalize(glm::cross(m_front, m_worldUp));
         m_up    = glm::normalize(glm::cross(m_right, m_front));
 
-        m_horizontalFront = glm::normalize(glm::vec3(direction.x, 0, direction.z));    // horizontal front y value is zero (only in xz plane aka horizontal)
+        // horizontal front y value is zero (only in xz plane aka horizontal)
+        m_horizontalFront = glm::normalize(glm::vec3(direction.x, 0, direction.z));
     }
 };
 
