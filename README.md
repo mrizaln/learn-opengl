@@ -10,46 +10,35 @@ Old repo: [learn-opengl-old](https://github.com/mrizaln/learn-opengl-old)
 
 - GCC 13 (or other compiler with C++20 support)
 - CMake (3.10+)
+- Conan 2.0
 - [GLFW](https://github.com/glfw/glfw)
 - [stb](https://github.com/nothings/stb) (stb_image specifically)
 - [GLM](https://github.com/g-truc/glm)
 - [glbinding](https://github.com/cginternals/glbinding) (included in repository as submodule)
 - [ImGui](https://github.com/ocornut/imgui) (included in repository as submodule)
+- [assimp](https://github.com/assimp/assimp)
 
-### Linux
+Library dependencies are managed using Conan.
 
-- Fedora
+## Building
 
-  ```
-  sudo dnf install glfw glfw-devel stb-devel glm-devel
-  ```
+Every chapter has its own code directory and is a project on its own. To build a project, first you need to navigate to that project root directory (with CMakeLists.txt).
 
-- Others
+> For example: Hello Triangle chapter is in directory `main/1_getting_started/1.2_hello_triangle/code/`
 
-  Use your distro package manager. The package name may be different, but it will have similar name. Make sure to install both the binary package and the development package just like shown above.
-
-### Windows
-
-Idk, download the dependencies manually I guess.
-
-`¯\_(ツ)_/¯`
-
-## Compiling
-
-Before anything else, compile the [glbinding submodule](resources/lib). The instruction can be found **[here](https://github.com/cginternals/glbinding#build-instructions)**, but skip the step of cloning the repository and selecting its tag. This step only needs to be done once.
-
-Every chapter has its own code directory. Create a build directory inside that directory.
-
-> For example: `main/1_getting_started/1.2_hello_triangle/code/`
+Then you need to install the dependencies using Conan:
 
 ```sh
-cd main/1_getting_started/1.2_hello_triangle/code/
-mkdir build && cd build
+conan install . -of build/debug/ --build missing -s build_type=Debug
 ```
 
-Then, run the cmake command below:
+> You can change the `build_type` from `Debug` to `Release` if you want (also you can change the output directory as well: `... -of <output_directory> ...`)
+
+After the dependencies are installed, the building process is straightforward:
 
 ```sh
-cmake ..
-cmake --build . -j$(nproc)
+cmake --preset conan-debug
+cmake --build --preset conan-debug
 ```
+
+> Note that if you changed the `build_type` to `Release` at the previous step, the preset name is changed to `conan-release`. Make sure to reflect that in the commmand.
