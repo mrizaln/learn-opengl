@@ -1,9 +1,0 @@
-{
-    "version": 4,
-    "vendor": {
-        "conan": {}
-    },
-    "include": [
-        "/home/mrizaln/Projects/C++/learn-opengl/main/1_getting_started/1.5_transformations/code/build/debug/conan/CMakePresets.json"
-    ]
-}

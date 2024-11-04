@@ -1,9 +1,0 @@
-{
-    "version": 4,
-    "vendor": {
-        "conan": {}
-    },
-    "include": [
-        "/home/mrizaln/Projects/C++/learn-opengl/main/2_lighting/2.1_colors/code/build/debug/conan/CMakePresets.json"
-    ]
-}
