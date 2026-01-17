@@ -28,6 +28,8 @@
 
 #include "shader.hpp"
 
+#include "util/assets_path.hpp"
+
 using namespace gl;
 
 class App
@@ -36,6 +38,8 @@ public:
     static constexpr int              DEFAULT_WINDOW_WIDTH  = 800;
     static constexpr int              DEFAULT_WINDOW_HEIGHT = 600;
     static constexpr std::string_view DEFAULT_WINDOW_NAME   = "LearnOpenGL";
+
+    static inline auto s_assets_path = util::assets_path("1.7_camera");
 
     template <typename T>
     using Pair = std::array<T, 2>;
@@ -337,8 +341,8 @@ private:
     App(unique_GLFWwindow&& window)
         : m_window{ std::move(window) }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
     {
         setCallbacks();
@@ -384,7 +388,7 @@ private:
             for (auto& [_, handler] : std::ranges::subrange(range.first, range.second)) {
                 auto& [hmod, haction, hfun]{ handler };
                 if (haction != KeyEventHandler::KeyActionType::ONCE) { continue; }
-                if (action == GLFW_RELEASE | action == GLFW_REPEAT) { continue; }    // ignore release and repeat event for now
+                if (action == GLFW_RELEASE || action == GLFW_REPEAT) { continue; }    // ignore release and repeat event for now
 
                 if (mods & hmod || hmod == 0) {    // modifier match or don't have any modifier
                     hfun();
@@ -574,7 +578,7 @@ private:
     {
         stbi_set_flip_vertically_on_load(true);
 
-        auto imageData{ ImageData::from("./assets/texture/container.jpg") };
+        auto imageData{ ImageData::from(s_assets_path / "texture/container.jpg") };
         if (!imageData.has_value()) {
             std::cerr << "Failed to load image data\n";
         }
@@ -599,7 +603,7 @@ private:
         glTexImage2D(GL_TEXTURE_2D, 0, format, imageData->m_width, imageData->m_height, 0, format, GL_UNSIGNED_BYTE, imageData->m_data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        auto imageData2{ ImageData::from("./assets/texture/awesomeface.png") };
+        auto imageData2{ ImageData::from(s_assets_path / "texture/awesomeface.png") };
         if (!imageData2.has_value()) {
             std::cerr << "Failed to load image data\n";
         }
@@ -708,7 +712,7 @@ private:
             // transformation stuff
             auto view{ glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp) };
             m_shader.setUniform("view", view);
-            auto projection{ glm::perspective(glm::radians(m_cameraFov), m_windowWidth / (float)m_windowHeight, 0.01f, 100.0f) };
+            auto projection{ glm::perspective(glm::radians(m_cameraFov), (float)m_windowWidth / (float)m_windowHeight, 0.01f, 100.0f) };
             m_shader.setUniform("projection", projection);
 
             for (int i{ 0 }; const auto& pos : s_cubePositions) {

@@ -18,13 +18,15 @@
 #include "image_texture.hpp"
 #include "mesh.hpp"
 
-// #define FIELD(M)                    \
-//     M(DIFFUSE, "texture_diffuse")   \
-//     M(SPECULAR, "texture_specular") \
-//     M(NORMAL, "texture_normal")     \
-//     M(HEIGHT, "texture_height")
-// using TextureType = STRINGIFIED_ENUM(TextureType, unsigned int, FIELD);
-// #undef FIELD
+/*
+#define FIELD(M)                    \
+    M(DIFFUSE, "texture_diffuse")   \
+    M(SPECULAR, "texture_specular") \
+    M(NORMAL, "texture_normal")     \
+    M(HEIGHT, "texture_height")
+using TextureType = STRINGIFIED_ENUM(TextureType, unsigned int, FIELD);
+#undef FIELD 
+*/
 
 class Model
 {

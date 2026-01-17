@@ -26,6 +26,8 @@
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
 
+#include "util/assets_path.hpp"
+
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
 #define UNIFORM_STRUCT_CREATE(FIELDS)        \
@@ -136,6 +138,8 @@ class Scene
 private:
     friend ImGuiLayer;
 
+    static inline auto s_assets_path = util::assets_path("2.5_light_casters");
+
     // clang-format off
     static inline constexpr std::array<glm::vec3, 10> s_cubePositions{ {
         {  0.0f,  0.0f,  0.0f },
@@ -181,19 +185,19 @@ public:
         : m_window{ window }
         , m_camera{ {} }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_cube{}
         , m_material{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/container2.png",
-            /* .m_specular  = */ "./assets/texture/container2_specular.png",
-            /* .m_emission  = */ "./assets/texture/abyss.jpg",
+            /* .m_diffuse   = */ s_assets_path / "texture/container2.png",
+            /* .m_specular  = */ s_assets_path / "texture/container2_specular.png",
+            /* .m_emission  = */ s_assets_path / "texture/abyss.jpg",
             /* .m_shininess = */ 32.0f,
         }
         , m_directionalLight{

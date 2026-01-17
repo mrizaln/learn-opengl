@@ -21,6 +21,8 @@
 
 #include "shader.hpp"
 
+#include "util/assets_path.hpp"
+
 using namespace gl;
 
 class App
@@ -29,6 +31,8 @@ public:
     static constexpr int              s_windowWidth  = 800;
     static constexpr int              s_windowHeight = 600;
     static constexpr std::string_view s_windowName   = "LearnOpenGL";
+
+    static inline auto s_assets_path = util::assets_path("1.3_shaders");
 
     template <typename T>
     using Triple = std::array<T, 3>;
@@ -166,7 +170,10 @@ public:
 private:
     App(unique_GLFWwindow&& window)
         : m_window{ std::move(window) }
-        , m_shader{ "./assets/shader/shader.vert", "./assets/shader/shader.frag" }
+        , m_shader{ 
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag", 
+        }
     {
         glfwSetWindowUserPointer(m_window.get(), this);
 

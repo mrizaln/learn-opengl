@@ -19,6 +19,8 @@
 #include "camera.hpp"
 #include "shader.hpp"
 
+#include "util/assets_path.hpp"
+
 template <typename T>
 struct UniformData
 {
@@ -64,6 +66,7 @@ class App
 {
 private:
     static inline std::unique_ptr<App> s_instance{ nullptr };
+    static inline auto s_assets_path = util::assets_path("2.3_material");
 
     window::Window& m_window;
     Camera          m_camera;
@@ -112,12 +115,12 @@ private:
         : m_window{ window }
         , m_camera{ {} }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_cube{}
         , m_material{

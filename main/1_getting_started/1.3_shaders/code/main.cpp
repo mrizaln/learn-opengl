@@ -1,5 +1,3 @@
-#define USE_SHADER_HEADER
-
 #ifdef USE_SHADER_HEADER
 #    include "app_with_shader_class.hpp"
 #else

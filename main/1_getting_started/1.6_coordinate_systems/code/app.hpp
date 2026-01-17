@@ -27,6 +27,7 @@
 #include <stb_image.h>
 
 #include "shader.hpp"
+#include "util/assets_path.hpp"
 
 using namespace gl;
 
@@ -36,6 +37,8 @@ public:
     static constexpr int              s_windowWidth  = 800;
     static constexpr int              s_windowHeight = 600;
     static constexpr std::string_view s_windowName   = "LearnOpenGL";
+
+    static inline auto s_assets_path = util::assets_path("1.6_coordinate_systems");
 
     template <typename T>
     using Pair = std::array<T, 2>;
@@ -296,8 +299,8 @@ private:
     App(unique_GLFWwindow&& window)
         : m_window{ std::move(window) }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
     {
         glfwSetWindowUserPointer(m_window.get(), this);
@@ -403,7 +406,7 @@ private:
     {
         stbi_set_flip_vertically_on_load(true);
 
-        auto imageData{ ImageData::from("./assets/texture/container.jpg") };
+        auto imageData{ ImageData::from(s_assets_path / "texture/container.jpg") };
         if (!imageData.has_value()) {
             std::cerr << "Failed to load image data\n";
         }
@@ -428,7 +431,7 @@ private:
         glTexImage2D(GL_TEXTURE_2D, 0, format, imageData->m_width, imageData->m_height, 0, format, GL_UNSIGNED_BYTE, imageData->m_data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        auto imageData2{ ImageData::from("./assets/texture/awesomeface.png") };
+        auto imageData2{ ImageData::from(s_assets_path / "texture/awesomeface.png") };
         if (!imageData2.has_value()) {
             std::cerr << "Failed to load image data\n";
         }
@@ -530,7 +533,7 @@ private:
             // transformation stuff
             auto view{ glm::translate(glm::mat4{ 1.0f }, { 0.0f, 0.0f, -3.0f }) };
             m_shader.setUniform("view", view);
-            auto projection{ glm::perspective(glm::radians(45.0f), m_windowWidth / (float)m_windowHeight, 0.1f, 100.0f) };
+            auto projection{ glm::perspective(glm::radians(45.0f), (float)m_windowWidth / (float)m_windowHeight, 0.1f, 100.0f) };
             m_shader.setUniform("projection", projection);
 
             for (int i{ 0 }; const auto& pos : s_cubePositions) {

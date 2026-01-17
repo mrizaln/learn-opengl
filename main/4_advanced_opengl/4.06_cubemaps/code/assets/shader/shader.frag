@@ -69,16 +69,22 @@ uint         LIGHT_SPOT        = 4u;
 
 vec3 calculateDirectionalLight(vec3 normal, vec3 viewDir)
 {
-    vec3 lightDir   = normalize(-u_directionalLight.m_direction);    // direction vector from fragment to u_spotLight source
-    vec3 reflectDir = reflect(-lightDir, normal);                    // 1st param expects a vector that points from u_spotLight source towards the fragment
+    vec3 lightDir   = normalize(-u_directionalLight.m_direction
+    );                                             // direction vector from fragment to u_spotLight source
+    vec3 reflectDir = reflect(-lightDir, normal);    // 1st param expects a vector that points from
+                                                     // u_spotLight source towards the fragment
 
     vec3 ambient = u_directionalLight.m_ambient * texture(u_material.m_diffuse, io_texCoords).rgb;
 
     float diffuseValue = max(dot(normal, lightDir), 0.0);    // clamp to non-negative
-    vec3  diffuse      = diffuseValue * u_directionalLight.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
+    vec3  diffuse      = diffuseValue * u_directionalLight.m_diffuse
+                 * texture(u_material.m_diffuse, io_texCoords).rgb;
 
-    float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);    // 32 is the shininess value
-    vec3  specular      = specularValue * u_directionalLight.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
+    float specularValue = pow(
+        max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess
+    );    // 32 is the shininess value
+    vec3 specular = specularValue * u_directionalLight.m_specular
+                  * texture(u_material.m_specular, io_texCoords).rgb;
 
     vec3 emission = texture(u_material.m_emission, io_texCoords).rgb * vec3(u_enableEmissionMap);
 
@@ -93,8 +99,10 @@ vec3 calculatePointLight(vec3 normal, vec3 viewDir)
     for (int i = 0; i < NUMBER_OF_POINT_LIGHTS; ++i) {
         PointLight light = u_pointLight[i];
 
-        vec3 lightDir   = normalize(light.m_position - io_fragPos);    // direction vector from fragment to u_spotLight source
-        vec3 reflectDir = reflect(-lightDir, normal);                  // 1st param expects a vector that points from u_spotLight source towards the fragment
+        vec3 lightDir = normalize(light.m_position - io_fragPos);    // direction vector from fragment to
+                                                                     // u_spotLight source
+        vec3 reflectDir = reflect(-lightDir, normal);    // 1st param expects a vector that points from
+                                                         // u_spotLight source towards the fragment
 
         vec3 ambient = light.m_ambient * texture(u_material.m_diffuse, io_texCoords).rgb;
 
@@ -102,12 +110,14 @@ vec3 calculatePointLight(vec3 normal, vec3 viewDir)
         vec3  diffuse      = diffuseValue * light.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
 
         float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);
-        vec3  specular      = specularValue * light.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
+        vec3  specular = specularValue * light.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
 
         vec3 emission = texture(u_material.m_emission, io_texCoords).rgb * vec3(u_enableEmissionMap);
 
         float distance    = length(light.m_position - io_fragPos);
-        float attenuation = 1.0 / (light.m_constant + light.m_linear * distance + light.m_quadratic * (distance * distance));
+        float attenuation = 1.0
+                          / (light.m_constant + light.m_linear * distance
+                             + light.m_quadratic * (distance * distance));
 
         result += (ambient + diffuse + specular) * attenuation + emission;
     }
@@ -122,18 +132,22 @@ vec3 calculateSpotLight(vec3 normal, vec3 viewDir)
     vec3 ambient = u_spotLight.m_ambient * texture(u_material.m_diffuse, io_texCoords).rgb;
 
     float diffuseValue = max(dot(normal, lightDir), 0.0);    // clamp to non-negative
-    vec3  diffuse      = diffuseValue * u_spotLight.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
+    vec3  diffuse = diffuseValue * u_spotLight.m_diffuse * texture(u_material.m_diffuse, io_texCoords).rgb;
 
     float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);
-    vec3  specular      = specularValue * u_spotLight.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
+    vec3 specular = specularValue * u_spotLight.m_specular * texture(u_material.m_specular, io_texCoords).rgb;
 
     vec3 emission = texture(u_material.m_emission, io_texCoords).rgb * vec3(u_enableEmissionMap);
 
     float distance    = length(u_spotLight.m_position - io_fragPos);
-    float attenuation = 1.0 / (u_spotLight.m_constant + u_spotLight.m_linear * distance + u_spotLight.m_quadratic * distance * distance);
+    float attenuation = 1.0
+                      / (u_spotLight.m_constant + u_spotLight.m_linear * distance
+                         + u_spotLight.m_quadratic * distance * distance);
 
     // smooth edges
-    float theta     = dot(lightDir, normalize(-u_spotLight.m_direction));    // negated because we want the vectors to point towards the u_spotLight source
+    float theta = dot(
+        lightDir, normalize(-u_spotLight.m_direction)
+    );    // negated because we want the vectors to point towards the u_spotLight source
     float epsilon   = u_spotLight.m_cutOff - u_spotLight.m_outerCutOff;
     float intensity = clamp((theta - u_spotLight.m_outerCutOff) / epsilon, 0.0, 1.0);
 
@@ -144,7 +158,7 @@ float linearize_depth(float depth)
 {
     float depth_ndc    = depth * 2.0 - 1.0;
     float depth_linear = (2.0 * u_nearPlane * u_farPlane)
-                         / (u_farPlane + u_nearPlane - depth_ndc * (u_farPlane - u_nearPlane));
+                       / (u_farPlane + u_nearPlane - depth_ndc * (u_farPlane - u_nearPlane));
     return depth_linear;
 }
 
@@ -156,8 +170,10 @@ void main()
         vec3 normal  = normalize(io_normal);
         vec3 viewDir = normalize(u_viewPos - io_fragPos);
 
-#define LIGHT_ENABLE_TEST(Enum, Func) \
-    if ((u_enabledLightsFlag & Enum) > 0u) { outColor += Func(normal, viewDir); }
+#define LIGHT_ENABLE_TEST(Enum, Func)                                                                        \
+    if ((u_enabledLightsFlag & Enum) > 0u) {                                                                 \
+        outColor += Func(normal, viewDir);                                                                   \
+    }
 
         LIGHT_ENABLE_TEST(LIGHT_DIRECTIONAL, calculateDirectionalLight);
         LIGHT_ENABLE_TEST(LIGHT_POINT, calculatePointLight);

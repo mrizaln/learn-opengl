@@ -37,9 +37,11 @@ void main()
     vec3  diffuse      = diffuseValue * u_light.m_diffuse * u_material.m_diffuse;
 
     // specular
-    vec3  viewDir       = normalize(u_viewPos - io_fragPos);
-    vec3  reflectDir    = reflect(-lightDir, normal);                                         // 1st param expects a vector that points from light source towards the fragment
-    float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);    // 32 is the shininess value
+    vec3 viewDir = normalize(u_viewPos - io_fragPos);
+
+    // 1st param expects a vector that points from light source towards the fragment
+    vec3  reflectDir    = reflect(-lightDir, normal);
+    float specularValue = pow(max(dot(viewDir, reflectDir), 0.0), u_material.m_shininess);
     vec3  specular      = specularValue * u_light.m_specular * u_material.m_specular;
 
     // combine all

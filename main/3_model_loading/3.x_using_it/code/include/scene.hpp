@@ -27,6 +27,8 @@
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
 
+#include "util/assets_path.hpp"
+
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
 #define UNIFORM_STRUCT_CREATE(FIELDS)        \
@@ -107,6 +109,8 @@ class Scene
 private:
     friend ImGuiLayer;
 
+    static inline auto s_assets_path = util::assets_path("3_model_loading");
+
     // clang-format off
     static inline constexpr std::size_t s_numPointLights{ 4 };
     static inline constexpr std::array<glm::vec3, s_numPointLights> s_pointLightsPositions{ {
@@ -153,12 +157,12 @@ public:
         , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_modelShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_directionalLight{
             .m_name      = "u_directionalLight",
@@ -182,7 +186,7 @@ public:
             .m_quadratic   = 0.032f,
         }
         , m_model{ [] {
-            const std::string modelPath{ "./assets/model/backpack/backpack.obj" };
+            const std::string modelPath{ s_assets_path / "model/backpack/backpack.obj" };
             auto              maybeModel{ Model::load(modelPath) };
             if (!maybeModel) {
                 throw std::runtime_error{ std::format("Failed to load model from {}", modelPath) };

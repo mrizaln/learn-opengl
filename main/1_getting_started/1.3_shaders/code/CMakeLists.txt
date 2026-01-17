@@ -1,21 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+set(NAME 1.3_shaders)
+set(LIBS learnopengl::common glfw glbinding::glbinding)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+create_executable(${NAME}
+  SOURCES main.cpp
+  DEPENDS ${LIBS}
+  DEFINES USE_SHADER_HEADER
+)
 
-project(LearnOpenGL)
+create_executable(${NAME}_no_header
+  SOURCES main.cpp
+  DEPENDS ${LIBS}
+)
 
-find_package(glfw3 REQUIRED)
-find_package(glbinding REQUIRED)
-
-set(MAIN_EXE main)
-add_executable(${MAIN_EXE} main.cpp)
-target_link_libraries(${MAIN_EXE} PUBLIC glfw glbinding::glbinding)
-
-# copy assets to build directory
 add_custom_command(
-    TARGET ${MAIN_EXE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:${MAIN_EXE}>/assets
+  TARGET ${NAME}
+  POST_BUILD
+  COMMENT "copy assets to build directory"
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:${NAME}>/assets/${NAME}
 )

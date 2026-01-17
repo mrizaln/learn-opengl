@@ -130,6 +130,7 @@ namespace material
         case MaterialType::COPPER:   return copper;
         case MaterialType::GOLD:     return gold;
         case MaterialType::SILVER:   return silver;
+        case MaterialType::numOfMaterialTypes: std::unreachable();
         }
         // clang-format on
     }

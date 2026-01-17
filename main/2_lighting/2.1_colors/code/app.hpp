@@ -30,6 +30,8 @@
 #include "shader.hpp"
 #include "camera.hpp"
 
+#include "util/assets_path.hpp"
+
 using namespace gl;
 
 class App
@@ -38,6 +40,8 @@ public:
     static constexpr int              DEFAULT_WINDOW_WIDTH  = 800;
     static constexpr int              DEFAULT_WINDOW_HEIGHT = 600;
     static constexpr std::string_view DEFAULT_WINDOW_NAME   = "LearnOpenGL";
+
+    static inline auto s_assets_path = util::assets_path("2.1_colors");
 
     template <typename T>
     using Pair = std::array<T, 2>;
@@ -316,12 +320,12 @@ private:
         : m_window{ std::move(window) }
         , m_camera({})    // use defaults
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
     {
         setCallbacks();
@@ -367,7 +371,7 @@ private:
             for (auto& [_, handler] : std::ranges::subrange(range.first, range.second)) {
                 auto& [hmod, haction, hfun]{ handler };
                 if (haction != KeyEventHandler::KeyActionType::ONCE) { continue; }
-                if (action == GLFW_RELEASE | action == GLFW_REPEAT) { continue; }    // ignore release and repeat event for now
+                if (action == GLFW_RELEASE || action == GLFW_REPEAT) { continue; }    // ignore release and repeat event for now
 
                 if (mods & hmod || hmod == 0) {    // modifier match or don't have any modifier
                     hfun();

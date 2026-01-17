@@ -15,6 +15,7 @@
 #include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>    // glm::length2
 
 #include "camera.hpp"
@@ -29,6 +30,8 @@
 #include "stringified_enum.hpp"
 #include "window.hpp"
 #include "window_manager.hpp"
+
+#include "util/assets_path.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
@@ -138,6 +141,8 @@ private:
         T           m_value;
     };
 
+    static inline auto s_assets_path = util::assets_path("4.06_cubemaps");
+
     // clang-format off
     static inline constexpr std::array<glm::vec3, 2> s_cubePositions{ {
         { -1.0f, 0.0f, -1.0f },
@@ -229,58 +234,58 @@ public:
         , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_outlineShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/outline_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/outline_shader.frag",
         }
         , m_grassShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/grass_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/grass_shader.frag",
         }
         , m_windowShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/window_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/window_shader.frag",
         }
         , m_ndcShader{
-            "./assets/shader/ndc_shader.vert",
-            "./assets/shader/ndc_shader.frag",
+            s_assets_path / "shader/ndc_shader.vert",
+            s_assets_path / "shader/ndc_shader.frag",
         }
         , m_skyboxShader{
-            "./assets/shader/skybox.vert",
-            "./assets/shader/skybox.frag",
+            s_assets_path / "shader/skybox.vert",
+            s_assets_path / "shader/skybox.frag",
         }
         , m_cube{ 1.0f }
         , m_plane{ 1.0f }
         , m_screenPlane{ 2.0f }
         , m_cubeMaterial{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/metal.png",
-            /* .m_specular  = */ "./assets/texture/metal.png",
+            /* .m_diffuse   = */ s_assets_path / "texture/metal.png",
+            /* .m_specular  = */ s_assets_path / "texture/metal.png",
             /* .m_shininess = */ 128.0f,
         }
         , m_floorMaterial{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/marble.jpg",
-            /* .m_specular  = */ "./assets/texture/marble.jpg",
+            /* .m_diffuse   = */ s_assets_path / "texture/marble.jpg",
+            /* .m_specular  = */ s_assets_path / "texture/marble.jpg",
             /* .m_shininess = */ 32.0f,
         }
-        , m_grassTexture{ ImageTexture::from("./assets/texture/grass.png", "u_texture", 0).value() }      // skip optional check
-        , m_windowTexture{ ImageTexture::from("./assets/texture/window.png", "u_texture", 0).value() }    // skip optional check
+        , m_grassTexture{ ImageTexture::from(s_assets_path / "texture/grass.png", "u_texture", 0).value() }      // skip optional check
+        , m_windowTexture{ ImageTexture::from(s_assets_path / "texture/window.png", "u_texture", 0).value() }    // skip optional check
         , m_skybox{ [] {
             Cubemap::CubeImagePath imagePath{
-                .right  = "./assets/texture/skybox/right.jpg",
-                .left   = "./assets/texture/skybox/left.jpg",
-                .top    = "./assets/texture/skybox/top.jpg",
-                .bottom = "./assets/texture/skybox/bottom.jpg",
-                .back   = "./assets/texture/skybox/back.jpg",
-                .front  = "./assets/texture/skybox/front.jpg",
+                .right  = s_assets_path / "texture/skybox/right.jpg",
+                .left   = s_assets_path / "texture/skybox/left.jpg",
+                .top    = s_assets_path / "texture/skybox/top.jpg",
+                .bottom = s_assets_path / "texture/skybox/bottom.jpg",
+                .back   = s_assets_path / "texture/skybox/back.jpg",
+                .front  = s_assets_path / "texture/skybox/front.jpg",
             };
             return Cubemap::from(std::move(imagePath), "u_skybox", 0).value();    // skip optional check
         }() }

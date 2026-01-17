@@ -16,6 +16,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/norm.hpp>    // glm::length2
 
 #include <glbinding/gl/gl.h>
@@ -29,6 +30,8 @@
 #include "image_texture.hpp"
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
+
+#include "util/assets_path.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
@@ -138,6 +141,8 @@ class Scene
 private:
     friend ImGuiLayer;
 
+    static inline auto s_assets_path = util::assets_path("4.03_blending");
+
     // clang-format off
     static inline constexpr std::array<glm::vec3, 2> s_cubePositions{ {
         { -1.0f, 0.0f, -1.0f },
@@ -221,41 +226,41 @@ public:
         , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_outlineShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/outline_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/outline_shader.frag",
         }
         , m_grassShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/grass_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/grass_shader.frag",
         }
         , m_windowShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/window_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/window_shader.frag",
         }
         , m_cube{ 1.0f }
         , m_plane{ 1.0f }
         , m_cubeMaterial{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/metal.png",
-            /* .m_specular  = */ "./assets/texture/metal.png",
+            /* .m_diffuse   = */ s_assets_path / "texture/metal.png",
+            /* .m_specular  = */ s_assets_path / "texture/metal.png",
             /* .m_shininess = */ 128.0f,
         }
         , m_floorMaterial{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/marble.jpg",
-            /* .m_specular  = */ "./assets/texture/marble.jpg",
+            /* .m_diffuse   = */ s_assets_path / "texture/marble.jpg",
+            /* .m_specular  = */ s_assets_path / "texture/marble.jpg",
             /* .m_shininess = */ 32.0f,
         }
-        , m_grassTexture{ ImageTexture::from("./assets/texture/grass.png", "u_texture", 0).value() }      // skip optional check
-        , m_windowTexture{ ImageTexture::from("./assets/texture/window.png", "u_texture", 0).value() }    // skip optional check
+        , m_grassTexture{ ImageTexture::from(s_assets_path / "texture/grass.png", "u_texture", 0).value() }      // skip optional check
+        , m_windowTexture{ ImageTexture::from(s_assets_path / "texture/window.png", "u_texture", 0).value() }    // skip optional check
         , m_directionalLight{
             .m_name      = "u_directionalLight",
             .m_direction = { -0.2f, -1.0f, -0.3f },

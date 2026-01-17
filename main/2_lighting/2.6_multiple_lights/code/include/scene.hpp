@@ -26,16 +26,18 @@
 #include "stringified_enum.hpp"
 #include "scope_time_logger.hpp"
 
+#include "util/assets_path.hpp"
+
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);
-#define UNIFORM_STRUCT_CREATE(FIELDS)        \
-    std::string m_name;                      \
-                                             \
-    FIELDS(_UNIFORM_FIELD_EXPANDER)          \
-                                             \
-    void applyUniforms(Shader& shader) const \
-    {                                        \
-        FIELDS(_UNIFORM_APPLY_EXPANDER)      \
+#define UNIFORM_STRUCT_CREATE(FIELDS)                                                                        \
+    std::string m_name;                                                                                      \
+                                                                                                             \
+    FIELDS(_UNIFORM_FIELD_EXPANDER)                                                                          \
+                                                                                                             \
+    void applyUniforms(Shader& shader) const                                                                 \
+    {                                                                                                        \
+        FIELDS(_UNIFORM_APPLY_EXPANDER)                                                                      \
     }
 
 template <typename T>
@@ -79,10 +81,10 @@ struct Material
 
 struct DirectionalLight
 {
-#define FIELDS(M)             \
-    M(glm::vec3, m_direction) \
-    M(glm::vec3, m_ambient)   \
-    M(glm::vec3, m_diffuse)   \
+#define FIELDS(M)                                                                                            \
+    M(glm::vec3, m_direction)                                                                                \
+    M(glm::vec3, m_ambient)                                                                                  \
+    M(glm::vec3, m_diffuse)                                                                                  \
     M(glm::vec3, m_specular)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
@@ -91,42 +93,45 @@ struct DirectionalLight
 
 struct PointLight
 {
-#define FIELDS(M)            \
-    M(glm::vec3, m_position) \
-    M(glm::vec3, m_ambient)  \
-    M(glm::vec3, m_diffuse)  \
-    M(glm::vec3, m_specular) \
-    M(float, m_constant)     \
-    M(float, m_linear)       \
+#define FIELDS(M)                                                                                            \
+    M(glm::vec3, m_position)                                                                                 \
+    M(glm::vec3, m_ambient)                                                                                  \
+    M(glm::vec3, m_diffuse)                                                                                  \
+    M(glm::vec3, m_specular)                                                                                 \
+    M(float, m_constant)                                                                                     \
+    M(float, m_linear)                                                                                       \
     M(float, m_quadratic)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
 
-    void setLightColor(const std::string& name, Shader& lightShader) { lightShader.setUniform(name, m_specular); }    // dirty quick hack
+    void setLightColor(const std::string& name, Shader& lightShader)
+    {
+        lightShader.setUniform(name, m_specular);
+    }    // dirty quick hack
 #undef FIELDS
 };
 
 struct SpotLight
 {
-#define FIELDS(M)                                                  \
-    M(glm::vec3&, m_position)  /* reference to camera position */  \
-    M(glm::vec3&, m_direction) /* reference to camera direction */ \
-    M(glm::vec3, m_ambient)                                        \
-    M(glm::vec3, m_diffuse)                                        \
-    M(glm::vec3, m_specular)                                       \
-    M(float, m_cutOff)                                             \
-    M(float, m_outerCutOff)                                        \
-    M(float, m_constant)                                           \
-    M(float, m_linear)                                             \
+#define FIELDS(M)                                                                                            \
+    M(glm::vec3&, m_position)  /* reference to camera position */                                            \
+    M(glm::vec3&, m_direction) /* reference to camera direction */                                           \
+    M(glm::vec3, m_ambient)                                                                                  \
+    M(glm::vec3, m_diffuse)                                                                                  \
+    M(glm::vec3, m_specular)                                                                                 \
+    M(float, m_cutOff)                                                                                       \
+    M(float, m_outerCutOff)                                                                                  \
+    M(float, m_constant)                                                                                     \
+    M(float, m_linear)                                                                                       \
     M(float, m_quadratic)
 
     UNIFORM_STRUCT_CREATE(FIELDS);
 #undef FIELDS
 };
 
-#define ENUM_FIELDS(M)   \
-    M(LIGHT_DIRECTIONAL) \
-    M(LIGHT_POINT)       \
+#define ENUM_FIELDS(M)                                                                                       \
+    M(LIGHT_DIRECTIONAL)                                                                                     \
+    M(LIGHT_POINT)                                                                                           \
     M(LIGHT_SPOT)
 using LightsUsed = STRINGIFIED_ENUM_FLAG(LightsUsed, unsigned int, ENUM_FIELDS);
 #undef ENUM_FIELDS
@@ -137,6 +142,8 @@ class Scene
 {
 private:
     friend ImGuiLayer;
+
+    static inline auto s_assets_path = util::assets_path("2.6_multiple_lights");
 
     // clang-format off
     static inline constexpr std::array<glm::vec3, 10> s_cubePositions{ {
@@ -194,19 +201,19 @@ public:
         , m_backgroundColor{ 0.1f, 0.1f, 0.2f }
         , m_camera{ {} }
         , m_shader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/shader.frag",
         }
         , m_lightShader{
-            "./assets/shader/shader.vert",
-            "./assets/shader/light_shader.frag",
+            s_assets_path / "shader/shader.vert",
+            s_assets_path / "shader/light_shader.frag",
         }
         , m_cube{}
         , m_material{
             /* .m_name      = */ "u_material",
-            /* .m_diffuse   = */ "./assets/texture/container2.png",
-            /* .m_specular  = */ "./assets/texture/container2_specular.png",
-            /* .m_emission  = */ "./assets/texture/abyss.jpg",
+            /* .m_diffuse   = */ s_assets_path / "texture/container2.png",
+            /* .m_specular  = */ s_assets_path / "texture/container2_specular.png",
+            /* .m_emission  = */ s_assets_path / "texture/abyss.jpg",
             /* .m_shininess = */ 32.0f,
         }
         , m_directionalLight{
@@ -277,7 +284,9 @@ public:
         m_material.applyUniform(m_shader);
         m_directionalLight.applyUniforms(m_shader);
         m_spotLight.applyUniforms(m_shader);
-        for (auto& light : m_pointLights) { light.applyUniforms(m_shader); }
+        for (auto& light : m_pointLights) {
+            light.applyUniforms(m_shader);
+        }
         m_shader.setUniform(u_activatedLights.m_name, u_activatedLights.m_value.base());
     }
 
@@ -291,22 +300,28 @@ public:
         const auto& winProp{ m_window.getProperties() };
         gl::glViewport(0, 0, winProp.m_width, winProp.m_height);
 
-        auto      view{ m_camera.getViewMatrix() };
-        auto      projection{ m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height) };
+        auto view{ m_camera.getViewMatrix() };
+        auto projection{
+            m_camera.getProjectionMatrix(m_window.getProperties().m_width, m_window.getProperties().m_height)
+        };
         glm::mat4 model{ 1.0f };
 
         m_shader.use();
         m_material.applyUniform(m_shader);
         m_directionalLight.applyUniforms(m_shader);
         m_spotLight.applyUniforms(m_shader);
-        for (auto& light : m_pointLights) { light.applyUniforms(m_shader); }
+        for (auto& light : m_pointLights) {
+            light.applyUniforms(m_shader);
+        }
         m_shader.setUniform(u_activatedLights.m_name, u_activatedLights.m_value.base());
 
         //----------------[ light cube object ]-----------------
         m_lightShader.use();
         m_lightShader.setUniform("u_view", view);
         m_lightShader.setUniform("u_projection", projection);
-        for (auto& light : m_pointLights) { light.setLightColor("u_lightColor", m_lightShader); }
+        for (auto& light : m_pointLights) {
+            light.setLightColor("u_lightColor", m_lightShader);
+        }
 
         for (auto& light : m_pointLights) {
             model = glm::mat4{ 1.0f };
@@ -325,16 +340,16 @@ public:
         m_shader.setUniform("u_projection", projection);
 
         static double lastTime{ 0.0 };    // yeah, this local static variable is not good, but eh, once is ok
-        if (m_rotate) { lastTime += m_window.getDeltaTime(); }
+        if (m_rotate) {
+            lastTime += m_window.getDeltaTime();
+        }
 
         for (int i{ 0 }; const auto& pos : s_cubePositions) {
             auto      offset{ i++ };
-            glm::vec3 rotationAxis{
-                std::sin(lastTime * (2 + offset % 3) + 60 * offset),
-                std::cos(lastTime / (100 * (1 + offset % 3))),
-                std::atan(lastTime)
-            };
-            auto model{ glm::translate(glm::mat4{ 1.0f }, pos) };
+            glm::vec3 rotationAxis{ std::sin(lastTime * (2 + offset % 3) + 60 * offset),
+                                    std::cos(lastTime / (100 * (1 + offset % 3))),
+                                    std::atan(lastTime) };
+            auto      model{ glm::translate(glm::mat4{ 1.0f }, pos) };
             model = glm::rotate(model, (float)lastTime, glm::normalize(rotationAxis));
             m_shader.setUniform("u_model", model);
 
@@ -351,40 +366,64 @@ private:
         // various control
         m_window
             // wireframe
-            .addKeyEventHandler(GLFW_KEY_W, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                if ((m_drawWireFrame = !m_drawWireFrame)) {
-                    glPolygonMode(gl::GL_FRONT_AND_BACK, gl::GL_LINE);
-                } else {
-                    glPolygonMode(gl::GL_FRONT_AND_BACK, gl::GL_FILL);
+            .addKeyEventHandler(
+                GLFW_KEY_W,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [this](window::Window& /* win */) {
+                    if ((m_drawWireFrame = !m_drawWireFrame)) {
+                        glPolygonMode(gl::GL_FRONT_AND_BACK, gl::GL_LINE);
+                    } else {
+                        glPolygonMode(gl::GL_FRONT_AND_BACK, gl::GL_FILL);
+                    }
                 }
-            })
+            )
             // vsync
-            .addKeyEventHandler(GLFW_KEY_V, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                m_window.setVsync(!m_window.isVsyncEnabled());
-            })
+            .addKeyEventHandler(
+                GLFW_KEY_V,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [this](window::Window& /* win */) { m_window.setVsync(!m_window.isVsyncEnabled()); }
+            )
             // invert render
-            .addKeyEventHandler(GLFW_KEY_Z, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                auto& value{ m_invertRender };
-                if ((value = !value)) {
-                    glDepthFunc(gl::GL_GREATER);
-                    gl::glClearDepth(0);
-                } else {
-                    glDepthFunc(gl::GL_LESS);
-                    gl::glClearDepth(1);
+            .addKeyEventHandler(
+                GLFW_KEY_Z,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [this](window::Window& /* win */) {
+                    auto& value{ m_invertRender };
+                    if ((value = !value)) {
+                        glDepthFunc(gl::GL_GREATER);
+                        gl::glClearDepth(0);
+                    } else {
+                        glDepthFunc(gl::GL_LESS);
+                        gl::glClearDepth(1);
+                    }
                 }
-            })
+            )
             // rotate
-            .addKeyEventHandler(GLFW_KEY_R, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                m_rotate = !m_rotate;
-            })
+            .addKeyEventHandler(
+                GLFW_KEY_R,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [this](window::Window& /* win */) { m_rotate = !m_rotate; }
+            )
             // enable emission map
-            .addKeyEventHandler(GLFW_KEY_E, GLFW_MOD_ALT, CALLBACK, [this](window::Window& /* win */) {
-                m_shader.setUniform("u_enableEmissionMap", (m_enableEmissionMap = !m_enableEmissionMap));
-            })
+            .addKeyEventHandler(
+                GLFW_KEY_E,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [this](window::Window& /* win */) {
+                    m_shader.setUniform("u_enableEmissionMap", (m_enableEmissionMap = !m_enableEmissionMap));
+                }
+            )
             // capture mouse
-            .addKeyEventHandler(GLFW_KEY_C, GLFW_MOD_ALT, CALLBACK, [](window::Window& win) {
-                win.setCaptureMouse(!win.isMouseCaptured());
-            })
+            .addKeyEventHandler(
+                GLFW_KEY_C,
+                GLFW_MOD_ALT,
+                CALLBACK,
+                [](window::Window& win) { win.setCaptureMouse(!win.isMouseCaptured()); }
+            )
             // exit
             .addKeyEventHandler({ GLFW_KEY_Q, GLFW_KEY_ESCAPE }, 0, CALLBACK, [](window::Window& win) {
                 win.requestClose();
@@ -392,21 +431,46 @@ private:
 
         // camera movements (translation)
         m_window
-            .addKeyEventHandler(GLFW_KEY_W, 0, CONTINUOUS, [this](window::Window& win) {
-                m_camera.moveCamera(Camera::Movement::FORWARD, static_cast<float>(win.getDeltaTime()));
-            })
-            .addKeyEventHandler(GLFW_KEY_S, 0, CONTINUOUS, [this](window::Window& win) {
-                m_camera.moveCamera(Camera::Movement::BACKWARD, static_cast<float>(win.getDeltaTime()));
-            })
-            .addKeyEventHandler(GLFW_KEY_A, 0, CONTINUOUS, [this](window::Window& win) {
-                m_camera.moveCamera(Camera::Movement::LEFT, static_cast<float>(win.getDeltaTime()));
-            })
-            .addKeyEventHandler(GLFW_KEY_D, 0, CONTINUOUS, [this](window::Window& win) {
-                m_camera.moveCamera(Camera::Movement::RIGHT, static_cast<float>(win.getDeltaTime()));
-            })
-            .addKeyEventHandler(GLFW_KEY_LEFT_SHIFT, 0, CONTINUOUS, [this](window::Window& win) {
-                m_camera.moveCamera(Camera::Movement::DOWNWARD, static_cast<float>(win.getDeltaTime()));
-            })
+            .addKeyEventHandler(
+                GLFW_KEY_W,
+                0,
+                CONTINUOUS,
+                [this](window::Window& win) {
+                    m_camera.moveCamera(Camera::Movement::FORWARD, static_cast<float>(win.getDeltaTime()));
+                }
+            )
+            .addKeyEventHandler(
+                GLFW_KEY_S,
+                0,
+                CONTINUOUS,
+                [this](window::Window& win) {
+                    m_camera.moveCamera(Camera::Movement::BACKWARD, static_cast<float>(win.getDeltaTime()));
+                }
+            )
+            .addKeyEventHandler(
+                GLFW_KEY_A,
+                0,
+                CONTINUOUS,
+                [this](window::Window& win) {
+                    m_camera.moveCamera(Camera::Movement::LEFT, static_cast<float>(win.getDeltaTime()));
+                }
+            )
+            .addKeyEventHandler(
+                GLFW_KEY_D,
+                0,
+                CONTINUOUS,
+                [this](window::Window& win) {
+                    m_camera.moveCamera(Camera::Movement::RIGHT, static_cast<float>(win.getDeltaTime()));
+                }
+            )
+            .addKeyEventHandler(
+                GLFW_KEY_LEFT_SHIFT,
+                0,
+                CONTINUOUS,
+                [this](window::Window& win) {
+                    m_camera.moveCamera(Camera::Movement::DOWNWARD, static_cast<float>(win.getDeltaTime()));
+                }
+            )
             .addKeyEventHandler(GLFW_KEY_SPACE, 0, CONTINUOUS, [this](window::Window& win) {
                 m_camera.moveCamera(Camera::Movement::UPWARD, static_cast<float>(win.getDeltaTime()));
             });
@@ -414,7 +478,9 @@ private:
         // camera control (rotation and zoom)
         m_window
             .setScrollCallback([this](window::Window& window, double /* xOffset */, double yOffset) {
-                if (window.isMouseCaptured()) { m_camera.updatePerspective(static_cast<float>(yOffset)); }
+                if (window.isMouseCaptured()) {
+                    m_camera.updatePerspective(static_cast<float>(yOffset));
+                }
             })
             .setCursorPosCallback([this](window::Window& window, double xPos, double yPos) {
                 auto& winProp{ window.getProperties() };

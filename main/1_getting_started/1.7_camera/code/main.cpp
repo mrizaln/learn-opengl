@@ -1,5 +1,3 @@
-#define USE_CAMERA_HEADER
-
 #ifdef USE_CAMERA_HEADER
 #    include "app_with_camera_header.hpp"
 #else
