@@ -1,1 +1,0 @@
-../../../../../resources/sources/stringified_enum.hpp

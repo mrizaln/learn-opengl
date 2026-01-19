@@ -9,8 +9,8 @@
 #include <glbinding/gl/gl.h>
 #include <glm/glm.hpp>
 
-#include "shader.hpp"
-#include "texture.hpp"
+#include "common/old/shader.hpp"
+#include "common/old/texture.hpp"
 
 // #define ENABLE_BONE_INFLUENCE
 

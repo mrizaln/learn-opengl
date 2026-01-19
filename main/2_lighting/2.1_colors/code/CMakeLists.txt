@@ -1,7 +1,7 @@
 set(NAME 2.1_colors)
 set(
   LIBS
-  learnopengl::common
+  learnopengl::common-all
   glfw
   glbinding::glbinding
   glm::glm

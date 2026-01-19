@@ -1,1 +1,0 @@
-../../../../../resources/sources/window_manager.cpp

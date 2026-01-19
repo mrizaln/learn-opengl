@@ -15,7 +15,8 @@
 
 // #include "stringified_enum.hpp"
 
-#include "image_texture.hpp"
+#include "common/old/image_texture.hpp"
+
 #include "mesh.hpp"
 
 /*

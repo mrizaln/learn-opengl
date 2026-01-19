@@ -10,16 +10,14 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glbinding/gl/gl.h>
 
-#include "glbinding/gl/gl.h"
-
-#include "window.hpp"
-#include "window_manager.hpp"
-#include "cube.hpp"
-#include "camera.hpp"
-#include "shader.hpp"
-
-#include "util/assets_path.hpp"
+#include "common/old/window.hpp"
+#include "common/old/window_manager.hpp"
+#include "common/old/cube.hpp"
+#include "common/old/camera.hpp"
+#include "common/old/shader.hpp"
+#include "common/util/assets_path.hpp"
 
 template <typename T>
 struct UniformData

@@ -133,6 +133,8 @@ namespace material
         case MaterialType::numOfMaterialTypes: std::unreachable();
         }
         // clang-format on
+
+        std::unreachable();
     }
 }
 

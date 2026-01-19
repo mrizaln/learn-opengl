@@ -1,14 +1,15 @@
 #ifndef IMGUI_LAYER_HPP_NNY5AQ84
 #define IMGUI_LAYER_HPP_NNY5AQ84
 
-#include "window.hpp"
-#include "scene.hpp"
-#include "stringified_enum.hpp"
-#include "scope_time_logger.hpp"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include "common/old/window.hpp"
+#include "common/old/stringified_enum.hpp"
+#include "common/old/scope_time_logger.hpp"
+
+#include "scene.hpp"
 
 class ImGuiLayer
 {

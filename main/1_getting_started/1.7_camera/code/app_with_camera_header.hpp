@@ -26,10 +26,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "shader.hpp"
 #include "camera.hpp"
 
-#include "util/assets_path.hpp"
+#include "common/old/shader.hpp"
+#include "common/util/assets_path.hpp"
 
 using namespace gl;
 

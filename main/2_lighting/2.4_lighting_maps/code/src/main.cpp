@@ -7,9 +7,10 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include "window.hpp"
-#include "window_manager.hpp"
-#include "scope_time_logger.hpp"
+#include "common/old/window.hpp"
+#include "common/old/window_manager.hpp"
+#include "common/old/scope_time_logger.hpp"
+
 #include "app.hpp"
 
 static constexpr int         DEFAULT_WINDOW_WIDTH  = 800;

@@ -19,9 +19,9 @@
 #include <glbinding/glbinding.h>
 #include <GLFW/glfw3.h>
 
-#include "shader.hpp"
+#include "common/util/assets_path.hpp"
 
-#include "util/assets_path.hpp"
+#include "shader.hpp"
 
 using namespace gl;
 

@@ -1,7 +1,7 @@
 set(NAME 1.5_transformations)
 set(
   LIBS
-  learnopengl::common
+  learnopengl::common-all
   glfw
   glbinding::glbinding
   glm::glm

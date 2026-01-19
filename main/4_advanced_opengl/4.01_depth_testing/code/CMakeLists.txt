@@ -1,7 +1,7 @@
 set(NAME 4.01_depth_testing)
 set(
   LIBS
-  learnopengl::common
+  learnopengl::common-all
   glfw
   glbinding::glbinding
   glm::glm
@@ -11,7 +11,7 @@ set(
 )
 
 create_executable(${NAME}
-  SOURCES      src/main.cpp src/window.cpp src/window_manager.cpp
+  SOURCES      src/main.cpp
   INCLUDE_DIRS include
   DEPENDS      ${LIBS}
 )

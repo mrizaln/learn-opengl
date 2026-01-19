@@ -14,19 +14,17 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <glbinding/gl/gl.h>
 
-#include "window.hpp"
-#include "window_manager.hpp"
-#include "cube.hpp"
-#include "camera.hpp"
-#include "shader.hpp"
-#include "image_texture.hpp"
-#include "stringified_enum.hpp"
-#include "scope_time_logger.hpp"
-
-#include "util/assets_path.hpp"
+#include "common/old/window.hpp"
+#include "common/old/window_manager.hpp"
+#include "common/old/cube.hpp"
+#include "common/old/camera.hpp"
+#include "common/old/shader.hpp"
+#include "common/old/image_texture.hpp"
+#include "common/old/stringified_enum.hpp"
+#include "common/old/scope_time_logger.hpp"
+#include "common/util/assets_path.hpp"
 
 #define _UNIFORM_FIELD_EXPANDER(type, name) type name;
 #define _UNIFORM_APPLY_EXPANDER(type, name) shader.setUniform(m_name + "." #name, name);

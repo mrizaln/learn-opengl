@@ -1,5 +1,5 @@
 set(NAME 1.3_shaders)
-set(LIBS learnopengl::common glfw glbinding::glbinding)
+set(LIBS learnopengl::common-all glfw glbinding::glbinding)
 
 create_executable(${NAME}
   SOURCES main.cpp

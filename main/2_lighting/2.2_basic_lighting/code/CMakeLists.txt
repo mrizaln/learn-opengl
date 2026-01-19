@@ -1,7 +1,7 @@
 set(NAME 2.2_basic_lighting)
 set(
   LIBS
-  learnopengl::common
+  learnopengl::common-all
   glfw
   glbinding::glbinding
   glm::glm
